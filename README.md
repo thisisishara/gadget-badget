@@ -13,7 +13,7 @@ Members_
 2. Jayasinghe D.T. (Payment Service)
 3. Bandara J.M.S.A. (ResearchHub Service)
 4. Indrahenaka H.R.T.V. (Marketplace Service)
-5. H.C.K. de Silva (Subscription Service)
+5. H.C.K. de Silva (Fund Service)
 
 Web Services_
 1. Authentication Service
@@ -25,7 +25,7 @@ Web Services_
     Desc.
 4. Payment Service
     Desc.
-5. Subscription Service
+5. Fund Service
     Desc.
     
 *This Document might get updated in near-future.
