@@ -25,7 +25,7 @@ Web Services_
     Desc.
 4. Payment Service
     Desc.
-5. Fund Service
+5. Funding Service
     Desc.
     
 *This Document might get updated in near-future.
