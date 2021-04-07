@@ -37,24 +37,23 @@ public class Role extends DBHandler {
 
 			if(status > 0) {
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
-				result.addProperty("MESSAGE", "Role Inserted successfully.");
+				result.addProperty("MESSAGE", "Role " + role_id + " Inserted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Role was not Inserted.");
+				result.addProperty("MESSAGE", "Unable to Insert Role " + role_id);
 			}
 		}
-		catch (Exception e) {
+		catch (Exception ex) {
 			result = new JsonObject();
 			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while inserting user-role. Exception Details:" + e.getMessage());
-			System.err.println(e.getMessage());
+			result.addProperty("MESSAGE", "Error occurred while inserting Role " +role_id + ". Exception Details:" + ex.getMessage());
+			System.err.println(ex.getMessage());
 		}
 		return result;
 	}
 
 	// Read Roles
 	public JsonObject readRoles() {
-		// Generating JSON Objects
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();
 		try
@@ -95,70 +94,97 @@ public class Role extends DBHandler {
 			result.add("roles", resultArray);
 
 		}
-		catch (Exception e)
+		catch (Exception ex)
 		{
 			result = new JsonObject();
 			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while reading user-roles. Exception Details:" + e.getMessage());
-			System.err.println(e.getMessage());
+			result.addProperty("MESSAGE", "Error occurred while reading user-roles. Exception Details:" + ex.getMessage());
+			System.err.println(ex.getMessage());
 		}
 		return result;
 	}
 
-	/*/ Update Role
-	public String updateRole()
+	// Update Role
+	public JsonObject updateRole(String role_id, String role_description)
 	{
-		String output = "";
-		try
-		{
-			Connection con = getConnection();
-			if (con == null)
-			{return "Error while connecting to the database for updating."; }
-			// create a prepared statement
-			String query = "UPDATE item SET itemCode=?,itemName=?,itemPrice=?,itemDesc=?WHERE itemID=?";
-			PreparedStatement preparedStmt = con.prepareStatement(query);
+		JsonObject result = null;
+		try {
+			Connection conn = getConnection();
+			if (conn == null) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
+				return result; 
+			}
+
+			String query = "UPDATE `role` SET `role_description`=? WHERE `role_id`=?;";
+			PreparedStatement preparedStmt = conn.prepareStatement(query);
+
 			// binding values
-			preparedStmt.setString(1, code);
-			preparedStmt.setString(2, name);
-			preparedStmt.setDouble(3, Double.parseDouble(price));
-			preparedStmt.setString(4, desc);
-			preparedStmt.setInt(5, Integer.parseInt(ID));
+			preparedStmt.setString(1, role_description);
+			preparedStmt.setString(2, role_id);
+
 			// execute the statement
-			preparedStmt.execute();
-			con.close();
-			output = "Updated successfully";
+			int status = preparedStmt.executeUpdate();
+			conn.close();
+
+			result = new JsonObject();
+
+			if(status > 0) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("MESSAGE", "Role " + role_id + " Updated successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Unable to update Role " + role_id);
+			}
 		}
-		catch (Exception e)
-		{
-			output = "Error while updating the item.";
-			System.err.println(e.getMessage());
+		catch (Exception ex) {
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Error occurred while updating Role " + role_id + ". Exception Details:" + ex.getMessage());
+			System.err.println(ex.getMessage());
 		}
-		return output;
+		return result;
 	}
 
 	//Delete Role
-	public String deleteRole(String itemID) {
-		String output = "";
-		try
-		{
-			Connection con = getConnection();
-			if (con == null)
-			{return "Error while connecting to the database for deleting."; }
-			// create a prepared statement
-			String query = "delete from item where itemID=?";
-			PreparedStatement preparedStmt = con.prepareStatement(query);
+	public JsonObject deleteRole(String role_id) {
+		JsonObject result = null;
+		try {
+			Connection conn = getConnection();
+			if (conn == null) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
+				return result; 
+			}
+
+			String query = "DELETE FROM `role` WHERE `role_id`=?;";
+			PreparedStatement preparedStmt = conn.prepareStatement(query);
+
 			// binding values
-			preparedStmt.setInt(1, Integer.parseInt(itemID));
+			preparedStmt.setString(1, role_id);
+
 			// execute the statement
-			preparedStmt.execute();
-			con.close();
-			output = "Deleted successfully";
+			int status = preparedStmt.executeUpdate();
+			conn.close();
+
+			result = new JsonObject();
+
+			if(status > 0) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("MESSAGE", "Role " + role_id + " deleted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Unable to delete Role " + role_id);
+			}
 		}
-		catch (Exception e)
-		{
-			output = "Error while deleting the item.";
-			System.err.println(e.getMessage());
+		catch (Exception ex) {
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Error occurred while deleting Role " + role_id + ". Exception Details:" + ex.getMessage());
+			System.err.println(ex.getMessage());
 		}
-		return output;
-	}*/
+		return result;
+	}
 }
