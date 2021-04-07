@@ -74,8 +74,8 @@ public class Role extends DBHandler {
 			// check if no data 
 			if(!rs.isBeforeFirst()) {
 				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Operation has been terminated due to a database connectivity issue.");
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("MESSAGE","No roles found.");
 				return result;
 			}
 
@@ -147,7 +147,7 @@ public class Role extends DBHandler {
 		return result;
 	}
 
-	//Delete Role
+	// Delete Role
 	public JsonObject deleteRole(String role_id) {
 		JsonObject result = null;
 		try {

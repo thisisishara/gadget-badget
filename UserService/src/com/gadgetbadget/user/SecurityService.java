@@ -33,7 +33,7 @@ public class SecurityService {
 	@Path("/authentication")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String authentication() {
+	public String authenticate() {
 		return "Login is not implemented yet.";
 	}
 
@@ -42,7 +42,7 @@ public class SecurityService {
 	@GET
 	@Path("/roles")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String readItems()
+	public String readRoles()
 	{
 		return role.readRoles().toString();
 	}
@@ -52,7 +52,7 @@ public class SecurityService {
 	@Path("/roles")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertItem(String roleJSON)
+	public String insertRole(String roleJSON)
 	{
 		JsonObject result = null;
 
@@ -158,7 +158,7 @@ public class SecurityService {
 	@Path("/roles")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String deleteItem(String roleJSON)
+	public String deleteRole(String roleJSON)
 	{
 		JsonObject result = null;
 

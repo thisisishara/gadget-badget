@@ -12,8 +12,8 @@ import com.gadgetbadget.user.model.Employee;
 import com.gadgetbadget.user.model.Funder;
 import com.gadgetbadget.user.model.PaymentInfo;
 import com.gadgetbadget.user.model.Researcher;
-import com.gadgetbadget.user.model.Role;
 import com.gadgetbadget.user.model.User;
+import com.gadgetbadget.user.util.DBOpStatus;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -26,26 +26,71 @@ public class UserService {
 	Funder funder = new Funder();
 	Consumer consumer = new Consumer();
 	PaymentInfo paymentInfo = new PaymentInfo();
-	
-	
+
+
 	@GET
-	@Path("/")
+	@Path("/employees")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String hello() {
-		return "users is up and running.";
+	public String readEmployees() {
+		return employee.readEmployees().toString();
 	}
-	
+
 	@POST
-	@Path("/employee")
+	@Path("/employees")
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertEmployee() {
-		return employee.insertEmployee();
+	public String insertEmployee(String roleJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject roleJSON_parsed = new JsonParser().parse(roleJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!roleJSON_parsed.has("employees")) {
+				return (employee.insertEmployee(roleJSON_parsed.get("username").getAsString(), roleJSON_parsed.get("password").getAsString(), roleJSON_parsed.get("role_id").getAsString(), roleJSON_parsed.get("first_name").getAsString(), roleJSON_parsed.get("last_name").getAsString(), roleJSON_parsed.get("gender").getAsString(), roleJSON_parsed.get("primary_email").getAsString(), roleJSON_parsed.get("primary_phone").getAsString(), roleJSON_parsed.get("gb_employee_id").getAsString(), roleJSON_parsed.get("department").getAsString(), roleJSON_parsed.get("date_hired").getAsString())).toString();
+			} else if (!roleJSON_parsed.get("employees").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int insertCount = 0;
+			int elemCount = roleJSON_parsed.get("employees").getAsJsonArray().size();
+
+			for (JsonElement roleElem : roleJSON_parsed.get("employees").getAsJsonArray()) {
+				JsonObject roleObj = roleElem.getAsJsonObject();
+				JsonObject response = (employee.insertEmployee(roleObj.get("username").getAsString(), roleObj.get("password").getAsString(), roleObj.get("role_id").getAsString(), roleObj.get("first_name").getAsString(), roleObj.get("last_name").getAsString(), roleObj.get("gender").getAsString(), roleObj.get("primary_email").getAsString(), roleObj.get("primary_phone").getAsString(), roleObj.get("gb_employee_id").getAsString(), roleObj.get("department").getAsString(), roleObj.get("date_hired").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+					insertCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(insertCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("MESSAGE", insertCount + " Employees were inserted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + insertCount +" Employees were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Employees.");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
 	}
-	
-	
-	
-	
-	
+
+
+
+
+
 	/*
 	//Testing Inter-service communications with Payment Service
 	@GET
