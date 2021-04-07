@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Apr 06, 2021 at 03:52 AM
+-- Generation Time: Apr 06, 2021 at 01:25 PM
 -- Server version: 5.7.21
 -- PHP Version: 5.6.35
 
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `research_category` (
   `category_name` varchar(100) NOT NULL,
   `category_description` varchar(400) DEFAULT NULL,
   `date_last_updated` datetime DEFAULT CURRENT_TIMESTAMP,
-  `last_modified_by` varchar(10) NOT NULL,
+  `last_modified_by` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`category_id`),
   UNIQUE KEY `category_id` (`category_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -99,6 +99,13 @@ CREATE TRIGGER `tg_research_category_insert` BEFORE INSERT ON `research_category
   SET NEW.date_last_updated= CURRENT_TIMESTAMP();
   INSERT INTO research_category_seq (prefix) VALUES ("RC");
   SET NEW.category_id = CONCAT(CONCAT("RC",RIGHT(CAST(YEAR(CURDATE()) AS CHAR),2)), LPAD(LAST_INSERT_ID(), 6, '0'));
+END
+$$
+DELIMITER ;
+DROP TRIGGER IF EXISTS `tg_research_category_update`;
+DELIMITER $$
+CREATE TRIGGER `tg_research_category_update` BEFORE UPDATE ON `research_category` FOR EACH ROW BEGIN
+    SET NEW.date_last_updated = CURRENT_TIMESTAMP();
 END
 $$
 DELIMITER ;

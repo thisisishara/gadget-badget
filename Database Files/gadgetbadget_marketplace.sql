@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Apr 06, 2021 at 03:52 AM
+-- Generation Time: Apr 06, 2021 at 01:21 PM
 -- Server version: 5.7.21
 -- PHP Version: 5.6.35
 
@@ -44,6 +44,13 @@ CREATE TABLE IF NOT EXISTS `product` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
+-- Dumping data for table `product`
+--
+
+INSERT INTO `product` (`product_id`, `researcher_id`, `product_name`, `product_description`, `category_id`, `available_items`, `price`, `date_added`) VALUES
+('PR21000001', 'rer', 'erer', 'rer', 'PC21000001', 2, '222.22', '2021-04-06 09:43:14');
+
+--
 -- Triggers `product`
 --
 DROP TRIGGER IF EXISTS `tg_product_insert`;
@@ -68,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `product_category` (
   `category_name` varchar(100) NOT NULL,
   `category_description` varchar(400) DEFAULT NULL,
   `date_last_updated` datetime DEFAULT CURRENT_TIMESTAMP,
-  `last_modified_by` varchar(10) NOT NULL,
+  `last_modified_by` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`category_id`),
   UNIQUE KEY `category_id` (`category_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -89,6 +96,13 @@ CREATE TRIGGER `tg_product_category_insert` BEFORE INSERT ON `product_category` 
   SET NEW.date_last_updated= CURRENT_TIMESTAMP();
   INSERT INTO product_category_seq (prefix) VALUES ("PC");
   SET NEW.category_id = CONCAT(CONCAT("PC",RIGHT(CAST(YEAR(CURDATE()) AS CHAR),2)), LPAD(LAST_INSERT_ID(), 6, '0'));
+END
+$$
+DELIMITER ;
+DROP TRIGGER IF EXISTS `tg_product_category_update`;
+DELIMITER $$
+CREATE TRIGGER `tg_product_category_update` BEFORE UPDATE ON `product_category` FOR EACH ROW BEGIN
+    SET NEW.date_last_updated = CURRENT_TIMESTAMP();
 END
 $$
 DELIMITER ;
@@ -124,7 +138,14 @@ CREATE TABLE IF NOT EXISTS `product_seq` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `prefix` char(2) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `product_seq`
+--
+
+INSERT INTO `product_seq` (`id`, `prefix`) VALUES
+(1, 'PR');
 
 --
 -- Constraints for dumped tables
