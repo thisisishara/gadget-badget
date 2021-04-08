@@ -52,7 +52,7 @@ public class Employee extends User{
 			
 			if(status > 0) {
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
-				result.addProperty("MESSAGE", "Employee " + role_id + " Inserted successfully.");
+				result.addProperty("MESSAGE", "Employee Inserted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Unable to Insert Employee.");
@@ -65,7 +65,6 @@ public class Employee extends User{
 			System.err.println(ex.getMessage());
 		}
 		return result;
-
 	}
 
 	// read employees
@@ -127,11 +126,13 @@ public class Employee extends User{
 		return result;
 	}
 
-	/*
+	
 	// update employees
-	public JsonObject updateRole(String role_id, String role_description)
+	public JsonObject updateEmployee(String user_id,String username, String password, String first_name, String last_name, String gender, String primary_email, String primary_phone, String gb_employee_id, String department, String date_hired)
 	{
 		JsonObject result = null;
+		int status = 0;
+
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
@@ -141,39 +142,53 @@ public class Employee extends User{
 				return result; 
 			}
 
-			String query = "UPDATE `role` SET `role_description`=? WHERE `role_id`=?;";
-			PreparedStatement preparedStmt = conn.prepareStatement(query);
+			CallableStatement callableStmt = conn.prepareCall("{call sp_update_employee(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
 
-			// binding values
-			preparedStmt.setString(1, role_description);
-			preparedStmt.setString(2, role_id);
+			//output parameter registering
+			callableStmt.registerOutParameter(12, Types.INTEGER);
 
-			// execute the statement
-			int status = preparedStmt.executeUpdate();
-			conn.close();
+			//Input parameter binding
+			callableStmt.setString(1, user_id);
+			callableStmt.setString(2, username);
+			callableStmt.setString(3, password);
+			callableStmt.setString(4, first_name);
+			callableStmt.setString(5, last_name);
+			callableStmt.setString(6, gender);
+			callableStmt.setString(7, primary_email);
+			callableStmt.setString(8, primary_phone);
+			callableStmt.setString(9, gb_employee_id);
+			callableStmt.setString(10, department);
+			callableStmt.setString(11, date_hired);
 
-			result = new JsonObject();
+			callableStmt.execute();
 
+			//test
+			status = (int) callableStmt.getInt(12);
+			result = new JsonObject();			
+			
 			if(status > 0) {
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
-				result.addProperty("MESSAGE", "Role " + role_id + " Updated successfully.");
+				result.addProperty("MESSAGE", "Employee " + user_id + " Updated successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to update Role " + role_id);
+				result.addProperty("MESSAGE", "Unable to Update Employee " + user_id +".");
 			}
 		}
 		catch (Exception ex) {
 			result = new JsonObject();
 			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while updating Role " + role_id + ". Exception Details:" + ex.getMessage());
+			result.addProperty("MESSAGE", "Error occurred while updating Employee " + user_id +". Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
 		}
 		return result;
 	}
+	
 
 	// delete employees
-	public JsonObject deleteRole(String role_id) {
+	public JsonObject deleteEmployee(String user_id) {
 		JsonObject result = null;
+		int status = 0;
+
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
@@ -183,32 +198,34 @@ public class Employee extends User{
 				return result; 
 			}
 
-			String query = "DELETE FROM `role` WHERE `role_id`=?;";
-			PreparedStatement preparedStmt = conn.prepareStatement(query);
+			CallableStatement callableStmt = conn.prepareCall("{call sp_delete_employee(?, ?)}");
 
-			// binding values
-			preparedStmt.setString(1, role_id);
+			//output parameter registering
+			callableStmt.registerOutParameter(2, Types.INTEGER);
 
-			// execute the statement
-			int status = preparedStmt.executeUpdate();
-			conn.close();
+			//Input parameter binding
+			callableStmt.setString(1, user_id);
 
-			result = new JsonObject();
+			callableStmt.execute();
 
+			//test
+			status = (int) callableStmt.getInt(2);
+			result = new JsonObject();			
+			
 			if(status > 0) {
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
-				result.addProperty("MESSAGE", "Role " + role_id + " deleted successfully.");
+				result.addProperty("MESSAGE", "Employee " + user_id + " deleted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to delete Role " + role_id);
+				result.addProperty("MESSAGE", "Unable to Delete Employee "+ user_id +".");
 			}
 		}
 		catch (Exception ex) {
 			result = new JsonObject();
 			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while deleting Role " + role_id + ". Exception Details:" + ex.getMessage());
+			result.addProperty("MESSAGE", "Error occurred while deleting Employee. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
 		}
 		return result;
-	}*/
+	}
 }

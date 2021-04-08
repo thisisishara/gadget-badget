@@ -1,8 +1,10 @@
 package com.gadgetbadget.user;	
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -39,18 +41,18 @@ public class UserService {
 	@Path("/employees")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertEmployee(String roleJSON)
+	public String insertEmployee(String employeeJSON)
 	{
 		JsonObject result = null;
 
 		try {
 
-			JsonObject roleJSON_parsed = new JsonParser().parse(roleJSON).getAsJsonObject();
+			JsonObject employeeJSON_parsed = new JsonParser().parse(employeeJSON).getAsJsonObject();
 
 			//check if multiple inserts
-			if(!roleJSON_parsed.has("employees")) {
-				return (employee.insertEmployee(roleJSON_parsed.get("username").getAsString(), roleJSON_parsed.get("password").getAsString(), roleJSON_parsed.get("role_id").getAsString(), roleJSON_parsed.get("first_name").getAsString(), roleJSON_parsed.get("last_name").getAsString(), roleJSON_parsed.get("gender").getAsString(), roleJSON_parsed.get("primary_email").getAsString(), roleJSON_parsed.get("primary_phone").getAsString(), roleJSON_parsed.get("gb_employee_id").getAsString(), roleJSON_parsed.get("department").getAsString(), roleJSON_parsed.get("date_hired").getAsString())).toString();
-			} else if (!roleJSON_parsed.get("employees").isJsonArray()) {
+			if(!employeeJSON_parsed.has("employees")) {
+				return (employee.insertEmployee(employeeJSON_parsed.get("username").getAsString(), employeeJSON_parsed.get("password").getAsString(), employeeJSON_parsed.get("role_id").getAsString(), employeeJSON_parsed.get("first_name").getAsString(), employeeJSON_parsed.get("last_name").getAsString(), employeeJSON_parsed.get("gender").getAsString(), employeeJSON_parsed.get("primary_email").getAsString(), employeeJSON_parsed.get("primary_phone").getAsString(), employeeJSON_parsed.get("gb_employee_id").getAsString(), employeeJSON_parsed.get("department").getAsString(), employeeJSON_parsed.get("date_hired").getAsString())).toString();
+			} else if (!employeeJSON_parsed.get("employees").isJsonArray()) {
 				result = new JsonObject();
 				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
 				result.addProperty("MESSAGE","Invalid JSON Object.");
@@ -58,11 +60,11 @@ public class UserService {
 			}
 
 			int insertCount = 0;
-			int elemCount = roleJSON_parsed.get("employees").getAsJsonArray().size();
+			int elemCount = employeeJSON_parsed.get("employees").getAsJsonArray().size();
 
-			for (JsonElement roleElem : roleJSON_parsed.get("employees").getAsJsonArray()) {
-				JsonObject roleObj = roleElem.getAsJsonObject();
-				JsonObject response = (employee.insertEmployee(roleObj.get("username").getAsString(), roleObj.get("password").getAsString(), roleObj.get("role_id").getAsString(), roleObj.get("first_name").getAsString(), roleObj.get("last_name").getAsString(), roleObj.get("gender").getAsString(), roleObj.get("primary_email").getAsString(), roleObj.get("primary_phone").getAsString(), roleObj.get("gb_employee_id").getAsString(), roleObj.get("department").getAsString(), roleObj.get("date_hired").getAsString()));
+			for (JsonElement employeeElem : employeeJSON_parsed.get("employees").getAsJsonArray()) {
+				JsonObject employeeObj = employeeElem.getAsJsonObject();
+				JsonObject response = (employee.insertEmployee(employeeObj.get("username").getAsString(), employeeObj.get("password").getAsString(), employeeObj.get("role_id").getAsString(), employeeObj.get("first_name").getAsString(), employeeObj.get("last_name").getAsString(), employeeObj.get("gender").getAsString(), employeeObj.get("primary_email").getAsString(), employeeObj.get("primary_phone").getAsString(), employeeObj.get("gb_employee_id").getAsString(), employeeObj.get("department").getAsString(), employeeObj.get("date_hired").getAsString()));
 
 				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
 					insertCount++;
@@ -86,9 +88,112 @@ public class UserService {
 
 		return result.toString();
 	}
+	
+	
+	@PUT
+	@Path("/employees")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String updateEmployee(String employeeJSON)
+	{
+		JsonObject result = null;
 
+		try {
 
+			JsonObject employeeJSON_parsed = new JsonParser().parse(employeeJSON).getAsJsonObject();
 
+			//check if multiple inserts
+			if(!employeeJSON_parsed.has("employees")) {
+				return (employee.updateEmployee(employeeJSON_parsed.get("user_id").getAsString(), employeeJSON_parsed.get("username").getAsString(), employeeJSON_parsed.get("password").getAsString(), employeeJSON_parsed.get("first_name").getAsString(), employeeJSON_parsed.get("last_name").getAsString(), employeeJSON_parsed.get("gender").getAsString(), employeeJSON_parsed.get("primary_email").getAsString(), employeeJSON_parsed.get("primary_phone").getAsString(), employeeJSON_parsed.get("gb_employee_id").getAsString(), employeeJSON_parsed.get("department").getAsString(), employeeJSON_parsed.get("date_hired").getAsString())).toString();
+			} else if (!employeeJSON_parsed.get("employees").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int updateCount = 0;
+			int elemCount = employeeJSON_parsed.get("employees").getAsJsonArray().size();
+			
+			for (JsonElement employeeElem : employeeJSON_parsed.get("employees").getAsJsonArray()) {
+				JsonObject employeeObj = employeeElem.getAsJsonObject();
+				JsonObject response = (employee.updateEmployee(employeeObj.get("user_id").getAsString(), employeeObj.get("username").getAsString(), employeeObj.get("password").getAsString(), employeeObj.get("first_name").getAsString(), employeeObj.get("last_name").getAsString(), employeeObj.get("gender").getAsString(), employeeObj.get("primary_email").getAsString(), employeeObj.get("primary_phone").getAsString(), employeeObj.get("gb_employee_id").getAsString(), employeeObj.get("department").getAsString(), employeeObj.get("date_hired").getAsString()));
+				
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+					updateCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(updateCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("MESSAGE", updateCount + " Employees were updated successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + updateCount +" Employees were Updated. Updating failed for "+ (elemCount-updateCount) + " Employees.");
+			}
+			
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+	
+	
+	@DELETE
+	@Path("/employees")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String deleteEmployee(String employeeJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject employeeJSON_parsed = new JsonParser().parse(employeeJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!employeeJSON_parsed.has("employees")) {
+				return (employee.deleteEmployee(employeeJSON_parsed.get("user_id").getAsString())).toString();
+			} else if (!employeeJSON_parsed.get("employees").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int deleteCount = 0;
+			int elemCount = employeeJSON_parsed.get("employees").getAsJsonArray().size();
+			
+			for (JsonElement employeeElem : employeeJSON_parsed.get("employees").getAsJsonArray()) {
+				JsonObject employeeObj = employeeElem.getAsJsonObject();
+				JsonObject response = (employee.deleteEmployee(employeeObj.get("user_id").getAsString()));
+				
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+					deleteCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(deleteCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("MESSAGE", deleteCount + " Employees were deleted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + deleteCount +" Employees were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Employees.");
+			}
+			
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
 
 
 	/*
