@@ -25,11 +25,9 @@ public class Role extends DBHandler {
 			String query = "INSERT INTO `role`(`role_id`, `role_description`) VALUES(?,?);";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
-			// binding values
 			preparedStmt.setString(1, role_id);
 			preparedStmt.setString(2, role_description);
 
-			// execute the statement
 			int status = preparedStmt.executeUpdate();
 			conn.close();
 
@@ -66,12 +64,10 @@ public class Role extends DBHandler {
 				return result; 
 			}
 
-			// Retrieving roles
 			String query = "SELECT * FROM `role`";
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
 
-			// check if no data 
 			if(!rs.isBeforeFirst()) {
 				result = new JsonObject();
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
@@ -79,7 +75,6 @@ public class Role extends DBHandler {
 				return result;
 			}
 
-			// Iterate through the rows in the result set
 			while (rs.next())
 			{
 				JsonObject recordObject = new JsonObject();
@@ -120,11 +115,9 @@ public class Role extends DBHandler {
 			String query = "UPDATE `role` SET `role_description`=? WHERE `role_id`=?;";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
-			// binding values
 			preparedStmt.setString(1, role_description);
 			preparedStmt.setString(2, role_id);
 
-			// execute the statement
 			int status = preparedStmt.executeUpdate();
 			conn.close();
 
@@ -162,10 +155,8 @@ public class Role extends DBHandler {
 			String query = "DELETE FROM `role` WHERE `role_id`=?;";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
-			// binding values
 			preparedStmt.setString(1, role_id);
 
-			// execute the statement
 			int status = preparedStmt.executeUpdate();
 			conn.close();
 

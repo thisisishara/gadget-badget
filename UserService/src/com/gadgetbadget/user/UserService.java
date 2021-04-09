@@ -30,6 +30,7 @@ public class UserService {
 	PaymentInfo paymentInfo = new PaymentInfo();
 
 
+	//Employee End-points
 	@GET
 	@Path("/employees")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -49,7 +50,6 @@ public class UserService {
 
 			JsonObject employeeJSON_parsed = new JsonParser().parse(employeeJSON).getAsJsonObject();
 
-			//check if multiple inserts
 			if(!employeeJSON_parsed.has("employees")) {
 				return (employee.insertEmployee(employeeJSON_parsed.get("username").getAsString(), employeeJSON_parsed.get("password").getAsString(), employeeJSON_parsed.get("role_id").getAsString(), employeeJSON_parsed.get("first_name").getAsString(), employeeJSON_parsed.get("last_name").getAsString(), employeeJSON_parsed.get("gender").getAsString(), employeeJSON_parsed.get("primary_email").getAsString(), employeeJSON_parsed.get("primary_phone").getAsString(), employeeJSON_parsed.get("gb_employee_id").getAsString(), employeeJSON_parsed.get("department").getAsString(), employeeJSON_parsed.get("date_hired").getAsString())).toString();
 			} else if (!employeeJSON_parsed.get("employees").isJsonArray()) {
@@ -89,7 +89,6 @@ public class UserService {
 		return result.toString();
 	}
 	
-	
 	@PUT
 	@Path("/employees")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -102,7 +101,6 @@ public class UserService {
 
 			JsonObject employeeJSON_parsed = new JsonParser().parse(employeeJSON).getAsJsonObject();
 
-			//check if multiple inserts
 			if(!employeeJSON_parsed.has("employees")) {
 				return (employee.updateEmployee(employeeJSON_parsed.get("user_id").getAsString(), employeeJSON_parsed.get("username").getAsString(), employeeJSON_parsed.get("password").getAsString(), employeeJSON_parsed.get("first_name").getAsString(), employeeJSON_parsed.get("last_name").getAsString(), employeeJSON_parsed.get("gender").getAsString(), employeeJSON_parsed.get("primary_email").getAsString(), employeeJSON_parsed.get("primary_phone").getAsString(), employeeJSON_parsed.get("gb_employee_id").getAsString(), employeeJSON_parsed.get("department").getAsString(), employeeJSON_parsed.get("date_hired").getAsString())).toString();
 			} else if (!employeeJSON_parsed.get("employees").isJsonArray()) {
@@ -155,7 +153,6 @@ public class UserService {
 
 			JsonObject employeeJSON_parsed = new JsonParser().parse(employeeJSON).getAsJsonObject();
 
-			//check if multiple inserts
 			if(!employeeJSON_parsed.has("employees")) {
 				return (employee.deleteEmployee(employeeJSON_parsed.get("user_id").getAsString())).toString();
 			} else if (!employeeJSON_parsed.get("employees").isJsonArray()) {
@@ -184,6 +181,173 @@ public class UserService {
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Only " + deleteCount +" Employees were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Employees.");
+			}
+			
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+
+	//Consumer End-points
+	@GET
+	@Path("/consumers")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String readConsumers() {
+		return consumer.readConsumers().toString();
+	}
+
+	@POST
+	@Path("/consumers")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String insertConsumer(String consumerJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject consumerJSON_parsed = new JsonParser().parse(consumerJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!consumerJSON_parsed.has("consumers")) {
+				return (consumer.insertConsumer(consumerJSON_parsed.get("username").getAsString(), consumerJSON_parsed.get("password").getAsString(), consumerJSON_parsed.get("role_id").getAsString(), consumerJSON_parsed.get("first_name").getAsString(), consumerJSON_parsed.get("last_name").getAsString(), consumerJSON_parsed.get("gender").getAsString(), consumerJSON_parsed.get("primary_email").getAsString(), consumerJSON_parsed.get("primary_phone").getAsString())).toString();
+			} else if (!consumerJSON_parsed.get("consumers").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int insertCount = 0;
+			int elemCount = consumerJSON_parsed.get("consumers").getAsJsonArray().size();
+
+			for (JsonElement consumerElem : consumerJSON_parsed.get("consumers").getAsJsonArray()) {
+				JsonObject consumerObj = consumerElem.getAsJsonObject();
+				JsonObject response = (consumer.insertConsumer(consumerObj.get("username").getAsString(), consumerObj.get("password").getAsString(), consumerObj.get("role_id").getAsString(), consumerObj.get("first_name").getAsString(), consumerObj.get("last_name").getAsString(), consumerObj.get("gender").getAsString(), consumerObj.get("primary_email").getAsString(), consumerObj.get("primary_phone").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+					insertCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(insertCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("MESSAGE", insertCount + " Consumers were inserted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + insertCount +" Consumers were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Consumers.");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+	
+	
+	@PUT
+	@Path("/consumers")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String updateConsumer(String consumerJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject consumerJSON_parsed = new JsonParser().parse(consumerJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!consumerJSON_parsed.has("consumers")) {
+				return (consumer.updateConsumer(consumerJSON_parsed.get("user_id").getAsString(), consumerJSON_parsed.get("username").getAsString(), consumerJSON_parsed.get("password").getAsString(), consumerJSON_parsed.get("first_name").getAsString(), consumerJSON_parsed.get("last_name").getAsString(), consumerJSON_parsed.get("gender").getAsString(), consumerJSON_parsed.get("primary_email").getAsString(), consumerJSON_parsed.get("primary_phone").getAsString())).toString();
+			} else if (!consumerJSON_parsed.get("consumers").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int updateCount = 0;
+			int elemCount = consumerJSON_parsed.get("consumers").getAsJsonArray().size();
+			
+			for (JsonElement consumerElem : consumerJSON_parsed.get("consumers").getAsJsonArray()) {
+				JsonObject consumerObj = consumerElem.getAsJsonObject();
+				JsonObject response = (consumer.updateConsumer(consumerObj.get("user_id").getAsString(), consumerObj.get("username").getAsString(), consumerObj.get("password").getAsString(), consumerObj.get("first_name").getAsString(), consumerObj.get("last_name").getAsString(), consumerObj.get("gender").getAsString(), consumerObj.get("primary_email").getAsString(), consumerObj.get("primary_phone").getAsString()));
+				
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+					updateCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(updateCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("MESSAGE", updateCount + " Consumers were updated successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + updateCount +" Consumers were Updated. Updating failed for "+ (elemCount-updateCount) + " Consumers.");
+			}
+			
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+	
+	
+	@DELETE
+	@Path("/consumers")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String deleteConsumer(String consumerJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject consumerJSON_parsed = new JsonParser().parse(consumerJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!consumerJSON_parsed.has("consumers")) {
+				return (consumer.deleteConsumer(consumerJSON_parsed.get("user_id").getAsString())).toString();
+			} else if (!consumerJSON_parsed.get("consumers").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int deleteCount = 0;
+			int elemCount = consumerJSON_parsed.get("consumers").getAsJsonArray().size();
+			
+			for (JsonElement consumerElem : consumerJSON_parsed.get("consumers").getAsJsonArray()) {
+				JsonObject employeeObj = consumerElem.getAsJsonObject();
+				JsonObject response = (consumer.deleteConsumer(employeeObj.get("user_id").getAsString()));
+				
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+					deleteCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(deleteCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("MESSAGE", deleteCount + " Consumers were deleted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + deleteCount +" Consumers were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Consumers.");
 			}
 			
 		} catch (Exception ex){

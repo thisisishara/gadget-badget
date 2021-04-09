@@ -28,10 +28,8 @@ public class Employee extends User{
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_insert_employee(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
 
-			//output parameter registering
 			callableStmt.registerOutParameter(12, Types.INTEGER);
 
-			//Input parameter binding
 			callableStmt.setString(1, username);
 			callableStmt.setString(2, password);
 			callableStmt.setString(3, role_id);
@@ -46,7 +44,6 @@ public class Employee extends User{
 
 			callableStmt.execute();
 
-			//test
 			status = (int) callableStmt.getInt(12);
 			result = new JsonObject();			
 			
@@ -81,12 +78,10 @@ public class Employee extends User{
 				return result; 
 			}
 
-			// Retrieving roles
 			String query = "SELECT u.user_id, u.first_name, u.last_name, u.gender, u.primary_email, u.primary_phone, e.gb_employee_id, u.role_id, e.department, e.date_hired FROM `user` u, `employee` e WHERE u.user_id=e.employee_id";
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
 
-			// check if no data 
 			if(!rs.isBeforeFirst()) {
 				result = new JsonObject();
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
@@ -94,18 +89,17 @@ public class Employee extends User{
 				return result;
 			}
 
-			// Iterate through the rows in the result set
 			while (rs.next())
 			{
 				JsonObject recordObject = new JsonObject();
 				recordObject.addProperty("user_id", rs.getString("user_id"));
+				recordObject.addProperty("role_id", rs.getString("role_id"));
 				recordObject.addProperty("first_name", rs.getString("first_name"));
 				recordObject.addProperty("last_name", rs.getString("last_name"));
 				recordObject.addProperty("gender", rs.getString("gender"));
 				recordObject.addProperty("primary_email", rs.getString("primary_email"));
 				recordObject.addProperty("primary_phone", rs.getString("primary_phone"));
 				recordObject.addProperty("gb_employee_id", rs.getString("gb_employee_id"));
-				recordObject.addProperty("role_id", rs.getString("role_id"));
 				recordObject.addProperty("department", rs.getString("department"));
 				recordObject.addProperty("date_hired", rs.getString("date_hired"));
 				resultArray.add(recordObject);
@@ -144,10 +138,8 @@ public class Employee extends User{
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_update_employee(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
 
-			//output parameter registering
 			callableStmt.registerOutParameter(12, Types.INTEGER);
 
-			//Input parameter binding
 			callableStmt.setString(1, user_id);
 			callableStmt.setString(2, username);
 			callableStmt.setString(3, password);
@@ -162,7 +154,6 @@ public class Employee extends User{
 
 			callableStmt.execute();
 
-			//test
 			status = (int) callableStmt.getInt(12);
 			result = new JsonObject();			
 			
@@ -200,15 +191,12 @@ public class Employee extends User{
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_delete_employee(?, ?)}");
 
-			//output parameter registering
 			callableStmt.registerOutParameter(2, Types.INTEGER);
 
-			//Input parameter binding
 			callableStmt.setString(1, user_id);
 
 			callableStmt.execute();
 
-			//test
 			status = (int) callableStmt.getInt(2);
 			result = new JsonObject();			
 			
