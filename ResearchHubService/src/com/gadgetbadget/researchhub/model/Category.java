@@ -10,7 +10,7 @@ import com.google.gson.JsonObject;
 
 public class Category extends DBHandler {
 	//Insert Category
-	public JsonObject insertCategory(String category_id,String category_name, String category_description,String date_last_updated,String last_modified_by) {
+	public JsonObject insertCategory(String category_name, String category_description,String last_modified_by) {
 		JsonObject result = null;
 		try {
 			Connection conn = getConnection();
@@ -21,14 +21,12 @@ public class Category extends DBHandler {
 				return result; 
 			}
 
-			String query = "INSERT INTO `Category`(`category_id`, `category_name`,'category_description','date_last_updated','last_modified_by') VALUES(?,?);";
+			String query = "INSERT INTO `category`(`category_name`,'category_description','last_modified_by') VALUES(?,?,?);";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
-			preparedStmt.setString(1, category_id);
-			preparedStmt.setString(2, category_name);
-			preparedStmt.setString(1, category_description);
-			preparedStmt.setString(1, date_last_updated);
-			preparedStmt.setString(1, last_modified_by);
+			preparedStmt.setString(1, category_name);
+			preparedStmt.setString(2, category_description);
+			preparedStmt.setString(3, last_modified_by);
 
 			int status = preparedStmt.executeUpdate();
 			conn.close();
@@ -37,16 +35,16 @@ public class Category extends DBHandler {
 
 			if(status > 0) {
 				result.addProperty("STATUS", "SUCCESSFUL");
-				result.addProperty("MESSAGE", "Category " + category_id + " Inserted successfully.");
+				result.addProperty("MESSAGE", "Category Inserted successfully.");
 			} else {
 				result.addProperty("STATUS", "UNSUCCESSFUL");
-				result.addProperty("MESSAGE", "Unable to Insert Category " + category_id);
+				result.addProperty("MESSAGE", "Unable to Insert Category.");
 			}
 		}
 		catch (Exception ex) {
 			result = new JsonObject();
 			result.addProperty("STATUS", "EXCEPTION");
-			result.addProperty("MESSAGE", "Error occurred while inserting Category " +category_id + ". Exception Details:" + ex.getMessage());
+			result.addProperty("MESSAGE", "Error occurred while inserting Category. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
 		}
 		return result;
@@ -66,7 +64,7 @@ public class Category extends DBHandler {
 				return result; 
 			}
 
-			String query = "SELECT * FROM `Category`";
+			String query = "SELECT * FROM `category`";
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
 
@@ -104,7 +102,7 @@ public class Category extends DBHandler {
 	}
 
 	//Update Category
-	public JsonObject updateRole(String category_id, String category_name,String category_description,String date_last_updated,String last_modified_by)
+	public JsonObject updateRole(String category_id, String category_name,String category_description, String last_modified_by)
 	{
 		JsonObject result = null;
 		try {
@@ -116,14 +114,13 @@ public class Category extends DBHandler {
 				return result; 
 			}
 
-			String query = "UPDATE `Category` SET `category_name`,'category_description=?,date_last_updated=?,last_modified_by=?=? WHERE `category_id`=?;";
+			String query = "UPDATE `category` SET `category_name`=?,'category_description=?, last_modified_by=? WHERE `category_id`=?;";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
-			preparedStmt.setString(1, category_id);
-			preparedStmt.setString(2, category_name);
-			preparedStmt.setString(3, category_description);
-			preparedStmt.setString(4, date_last_updated);
-			preparedStmt.setString(5, last_modified_by);
+			preparedStmt.setString(1, category_name);
+			preparedStmt.setString(2, category_description);
+			preparedStmt.setString(3, last_modified_by);
+			preparedStmt.setString(4, category_id);
 
 			int status = preparedStmt.executeUpdate();
 			conn.close();
@@ -159,7 +156,7 @@ public class Category extends DBHandler {
 				return result; 
 			}
 
-			String query = "DELETE FROM `Category` WHERE `category_id`=?;";
+			String query = "DELETE FROM `category` WHERE `category_id`=?;";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
 			preparedStmt.setString(1, category_id);
