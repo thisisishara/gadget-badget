@@ -10,7 +10,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class Role extends DBHandler {
-	// Insert Role
+	//Insert Role
 	public JsonObject insertRole(String role_id, String role_description) {
 		JsonObject result = null;
 		try {
@@ -34,7 +34,7 @@ public class Role extends DBHandler {
 			result = new JsonObject();
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Role " + role_id + " Inserted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
@@ -50,7 +50,7 @@ public class Role extends DBHandler {
 		return result;
 	}
 
-	// Read Roles
+	//Read Roles
 	public JsonObject readRoles() {
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();
@@ -71,7 +71,7 @@ public class Role extends DBHandler {
 			if(!rs.isBeforeFirst()) {
 				result = new JsonObject();
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE","No roles found.");
+				result.addProperty("MESSAGE","No Roles found.");
 				return result;
 			}
 
@@ -93,13 +93,13 @@ public class Role extends DBHandler {
 		{
 			result = new JsonObject();
 			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while reading user-roles. Exception Details:" + ex.getMessage());
+			result.addProperty("MESSAGE", "Error occurred while reading Roles. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
 		}
 		return result;
 	}
 
-	// Update Role
+	//Update Role
 	public JsonObject updateRole(String role_id, String role_description)
 	{
 		JsonObject result = null;
@@ -124,7 +124,7 @@ public class Role extends DBHandler {
 			result = new JsonObject();
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Role " + role_id + " Updated successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
@@ -140,7 +140,7 @@ public class Role extends DBHandler {
 		return result;
 	}
 
-	// Delete Role
+	//Delete Role
 	public JsonObject deleteRole(String role_id) {
 		JsonObject result = null;
 		try {
@@ -163,7 +163,7 @@ public class Role extends DBHandler {
 			result = new JsonObject();
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Role " + role_id + " deleted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());

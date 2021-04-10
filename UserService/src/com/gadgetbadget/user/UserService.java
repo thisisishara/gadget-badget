@@ -66,14 +66,14 @@ public class UserService {
 				JsonObject employeeObj = employeeElem.getAsJsonObject();
 				JsonObject response = (employee.insertEmployee(employeeObj.get("username").getAsString(), employeeObj.get("password").getAsString(), employeeObj.get("role_id").getAsString(), employeeObj.get("first_name").getAsString(), employeeObj.get("last_name").getAsString(), employeeObj.get("gender").getAsString(), employeeObj.get("primary_email").getAsString(), employeeObj.get("primary_phone").getAsString(), employeeObj.get("gb_employee_id").getAsString(), employeeObj.get("department").getAsString(), employeeObj.get("date_hired").getAsString()));
 
-				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
 					insertCount++;
 				}
 			}
 
 			result = new JsonObject();
 			if(insertCount == elemCount) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", insertCount + " Employees were inserted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
@@ -88,7 +88,7 @@ public class UserService {
 
 		return result.toString();
 	}
-	
+
 	@PUT
 	@Path("/employees")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -112,25 +112,25 @@ public class UserService {
 
 			int updateCount = 0;
 			int elemCount = employeeJSON_parsed.get("employees").getAsJsonArray().size();
-			
+
 			for (JsonElement employeeElem : employeeJSON_parsed.get("employees").getAsJsonArray()) {
 				JsonObject employeeObj = employeeElem.getAsJsonObject();
 				JsonObject response = (employee.updateEmployee(employeeObj.get("user_id").getAsString(), employeeObj.get("username").getAsString(), employeeObj.get("password").getAsString(), employeeObj.get("first_name").getAsString(), employeeObj.get("last_name").getAsString(), employeeObj.get("gender").getAsString(), employeeObj.get("primary_email").getAsString(), employeeObj.get("primary_phone").getAsString(), employeeObj.get("gb_employee_id").getAsString(), employeeObj.get("department").getAsString(), employeeObj.get("date_hired").getAsString()));
-				
-				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
 					updateCount++;
 				}
 			}
 
 			result = new JsonObject();
 			if(updateCount == elemCount) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", updateCount + " Employees were updated successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Only " + updateCount +" Employees were Updated. Updating failed for "+ (elemCount-updateCount) + " Employees.");
 			}
-			
+
 		} catch (Exception ex){
 			result = new JsonObject();
 			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
@@ -139,8 +139,8 @@ public class UserService {
 
 		return result.toString();
 	}
-	
-	
+
+
 	@DELETE
 	@Path("/employees")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -164,25 +164,25 @@ public class UserService {
 
 			int deleteCount = 0;
 			int elemCount = employeeJSON_parsed.get("employees").getAsJsonArray().size();
-			
+
 			for (JsonElement employeeElem : employeeJSON_parsed.get("employees").getAsJsonArray()) {
 				JsonObject employeeObj = employeeElem.getAsJsonObject();
 				JsonObject response = (employee.deleteEmployee(employeeObj.get("user_id").getAsString()));
-				
-				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
 					deleteCount++;
 				}
 			}
 
 			result = new JsonObject();
 			if(deleteCount == elemCount) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", deleteCount + " Employees were deleted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Only " + deleteCount +" Employees were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Employees.");
 			}
-			
+
 		} catch (Exception ex){
 			result = new JsonObject();
 			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
@@ -230,14 +230,14 @@ public class UserService {
 				JsonObject consumerObj = consumerElem.getAsJsonObject();
 				JsonObject response = (consumer.insertConsumer(consumerObj.get("username").getAsString(), consumerObj.get("password").getAsString(), consumerObj.get("role_id").getAsString(), consumerObj.get("first_name").getAsString(), consumerObj.get("last_name").getAsString(), consumerObj.get("gender").getAsString(), consumerObj.get("primary_email").getAsString(), consumerObj.get("primary_phone").getAsString()));
 
-				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
 					insertCount++;
 				}
 			}
 
 			result = new JsonObject();
 			if(insertCount == elemCount) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", insertCount + " Consumers were inserted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
@@ -252,8 +252,8 @@ public class UserService {
 
 		return result.toString();
 	}
-	
-	
+
+
 	@PUT
 	@Path("/consumers")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -278,25 +278,25 @@ public class UserService {
 
 			int updateCount = 0;
 			int elemCount = consumerJSON_parsed.get("consumers").getAsJsonArray().size();
-			
+
 			for (JsonElement consumerElem : consumerJSON_parsed.get("consumers").getAsJsonArray()) {
 				JsonObject consumerObj = consumerElem.getAsJsonObject();
 				JsonObject response = (consumer.updateConsumer(consumerObj.get("user_id").getAsString(), consumerObj.get("username").getAsString(), consumerObj.get("password").getAsString(), consumerObj.get("first_name").getAsString(), consumerObj.get("last_name").getAsString(), consumerObj.get("gender").getAsString(), consumerObj.get("primary_email").getAsString(), consumerObj.get("primary_phone").getAsString()));
-				
-				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
 					updateCount++;
 				}
 			}
 
 			result = new JsonObject();
 			if(updateCount == elemCount) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", updateCount + " Consumers were updated successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Only " + updateCount +" Consumers were Updated. Updating failed for "+ (elemCount-updateCount) + " Consumers.");
 			}
-			
+
 		} catch (Exception ex){
 			result = new JsonObject();
 			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
@@ -305,8 +305,8 @@ public class UserService {
 
 		return result.toString();
 	}
-	
-	
+
+
 	@DELETE
 	@Path("/consumers")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -331,25 +331,370 @@ public class UserService {
 
 			int deleteCount = 0;
 			int elemCount = consumerJSON_parsed.get("consumers").getAsJsonArray().size();
-			
+
 			for (JsonElement consumerElem : consumerJSON_parsed.get("consumers").getAsJsonArray()) {
-				JsonObject employeeObj = consumerElem.getAsJsonObject();
-				JsonObject response = (consumer.deleteConsumer(employeeObj.get("user_id").getAsString()));
-				
-				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFULL.toString())) {
+				JsonObject consumerObj = consumerElem.getAsJsonObject();
+				JsonObject response = (consumer.deleteConsumer(consumerObj.get("user_id").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
 					deleteCount++;
 				}
 			}
 
 			result = new JsonObject();
 			if(deleteCount == elemCount) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", deleteCount + " Consumers were deleted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Only " + deleteCount +" Consumers were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Consumers.");
 			}
-			
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+
+	//Funder End-points
+	@GET
+	@Path("/funders")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String readFunders() {
+		return funder.readFunders().toString();
+	}
+
+	@POST
+	@Path("/funders")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String insertFunder(String funderJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject funderJSON_parsed = new JsonParser().parse(funderJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!funderJSON_parsed.has("funders")) {
+				return (funder.insertFunder(funderJSON_parsed.get("username").getAsString(), funderJSON_parsed.get("password").getAsString(), funderJSON_parsed.get("role_id").getAsString(), funderJSON_parsed.get("first_name").getAsString(), funderJSON_parsed.get("last_name").getAsString(), funderJSON_parsed.get("gender").getAsString(), funderJSON_parsed.get("primary_email").getAsString(), funderJSON_parsed.get("primary_phone").getAsString(), funderJSON_parsed.get("organization").getAsString())).toString();
+			} else if (!funderJSON_parsed.get("funders").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int insertCount = 0;
+			int elemCount = funderJSON_parsed.get("funders").getAsJsonArray().size();
+
+			for (JsonElement funderElem : funderJSON_parsed.get("funders").getAsJsonArray()) {
+				JsonObject funderObj = funderElem.getAsJsonObject();
+				JsonObject response = (funder.insertFunder(funderObj.get("username").getAsString(), funderObj.get("password").getAsString(), funderObj.get("role_id").getAsString(), funderObj.get("first_name").getAsString(), funderObj.get("last_name").getAsString(), funderObj.get("gender").getAsString(), funderObj.get("primary_email").getAsString(), funderObj.get("primary_phone").getAsString(), funderObj.get("organization").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+					insertCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(insertCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE", insertCount + " Funders were inserted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + insertCount +" Funders were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Funders.");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+
+	@PUT
+	@Path("/funders")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String updateFunder(String funderJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject funderJSON_parsed = new JsonParser().parse(funderJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!funderJSON_parsed.has("funders")) {
+				return (funder.updateFunder(funderJSON_parsed.get("user_id").getAsString(), funderJSON_parsed.get("username").getAsString(), funderJSON_parsed.get("password").getAsString(), funderJSON_parsed.get("first_name").getAsString(), funderJSON_parsed.get("last_name").getAsString(), funderJSON_parsed.get("gender").getAsString(), funderJSON_parsed.get("primary_email").getAsString(), funderJSON_parsed.get("primary_phone").getAsString(), funderJSON_parsed.get("organization").getAsString())).toString();
+			} else if (!funderJSON_parsed.get("funders").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int updateCount = 0;
+			int elemCount = funderJSON_parsed.get("funders").getAsJsonArray().size();
+
+			for (JsonElement funderElem : funderJSON_parsed.get("funders").getAsJsonArray()) {
+				JsonObject funderObj = funderElem.getAsJsonObject();
+				JsonObject response = (funder.updateFunder(funderObj.get("user_id").getAsString(), funderObj.get("username").getAsString(), funderObj.get("password").getAsString(), funderObj.get("first_name").getAsString(), funderObj.get("last_name").getAsString(), funderObj.get("gender").getAsString(), funderObj.get("primary_email").getAsString(), funderObj.get("primary_phone").getAsString(), funderObj.get("organization").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+					updateCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(updateCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE", updateCount + " Funders were updated successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + updateCount +" Funders were Updated. Updating failed for "+ (elemCount-updateCount) + " Funders.");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+
+	@DELETE
+	@Path("/funders")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String deleteFunder(String funderJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject funderJSON_parsed = new JsonParser().parse(funderJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!funderJSON_parsed.has("funders")) {
+				return (funder.deleteFunder(funderJSON_parsed.get("user_id").getAsString())).toString();
+			} else if (!funderJSON_parsed.get("funders").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int deleteCount = 0;
+			int elemCount = funderJSON_parsed.get("funders").getAsJsonArray().size();
+
+			for (JsonElement funderElem : funderJSON_parsed.get("funders").getAsJsonArray()) {
+				JsonObject funderObj = funderElem.getAsJsonObject();
+				JsonObject response = (funder.deleteFunder(funderObj.get("user_id").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+					deleteCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(deleteCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE", deleteCount + " Funders were deleted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + deleteCount +" Funders were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Funders.");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+
+	//Researcher End-points
+	@GET
+	@Path("/researchers")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String readResearchers() {
+		return researcher.readResearchers().toString();
+	}
+
+	@POST
+	@Path("/researchers")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String insertResearcher(String researcherJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject researcherJSON_parsed = new JsonParser().parse(researcherJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!researcherJSON_parsed.has("researchers")) {
+				return (researcher.insertResearcher(researcherJSON_parsed.get("username").getAsString(), researcherJSON_parsed.get("password").getAsString(), researcherJSON_parsed.get("role_id").getAsString(), researcherJSON_parsed.get("first_name").getAsString(), researcherJSON_parsed.get("last_name").getAsString(), researcherJSON_parsed.get("gender").getAsString(), researcherJSON_parsed.get("primary_email").getAsString(), researcherJSON_parsed.get("primary_phone").getAsString(), researcherJSON_parsed.get("institution").getAsString(), researcherJSON_parsed.get("field_of_study").getAsString(),Integer.parseInt(researcherJSON_parsed.get("years_of_exp").getAsString()))).toString();
+			} else if (!researcherJSON_parsed.get("researchers").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int insertCount = 0;
+			int elemCount = researcherJSON_parsed.get("researchers").getAsJsonArray().size();
+
+			for (JsonElement researcherElem : researcherJSON_parsed.get("researchers").getAsJsonArray()) {
+				JsonObject researcherObj = researcherElem.getAsJsonObject();
+				JsonObject response = (researcher.insertResearcher(researcherObj.get("username").getAsString(), researcherObj.get("password").getAsString(), researcherObj.get("role_id").getAsString(), researcherObj.get("first_name").getAsString(), researcherObj.get("last_name").getAsString(), researcherObj.get("gender").getAsString(), researcherObj.get("primary_email").getAsString(), researcherObj.get("primary_phone").getAsString(), researcherObj.get("institution").getAsString(), researcherObj.get("field_of_study").getAsString(),Integer.parseInt(researcherObj.get("years_of_exp").getAsString())));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+					insertCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(insertCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE", insertCount + " Researchers were inserted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + insertCount +" Researchers were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Researchers.");
+			}
+
+		} catch (NumberFormatException ex) {
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: Invalid input format. " + ex.getMessage());
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+
+	
+	@PUT
+	@Path("/researchers")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String updateResearcher(String researcherJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject researcherJSON_parsed = new JsonParser().parse(researcherJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!researcherJSON_parsed.has("researchers")) {
+				return (researcher.updateResearcher(researcherJSON_parsed.get("user_id").getAsString(), researcherJSON_parsed.get("username").getAsString(), researcherJSON_parsed.get("password").getAsString(), researcherJSON_parsed.get("first_name").getAsString(), researcherJSON_parsed.get("last_name").getAsString(), researcherJSON_parsed.get("gender").getAsString(), researcherJSON_parsed.get("primary_email").getAsString(), researcherJSON_parsed.get("primary_phone").getAsString(), researcherJSON_parsed.get("institution").getAsString(), researcherJSON_parsed.get("field_of_study").getAsString(), Integer.parseInt(researcherJSON_parsed.get("years_of_exp").getAsString()))).toString();
+			} else if (!researcherJSON_parsed.get("researchers").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int updateCount = 0;
+			int elemCount = researcherJSON_parsed.get("researchers").getAsJsonArray().size();
+
+			for (JsonElement researcherElem : researcherJSON_parsed.get("researchers").getAsJsonArray()) {
+				JsonObject researcherObj = researcherElem.getAsJsonObject();
+				JsonObject response = (researcher.updateResearcher(researcherObj.get("user_id").getAsString(), researcherObj.get("username").getAsString(), researcherObj.get("password").getAsString(), researcherObj.get("first_name").getAsString(), researcherObj.get("last_name").getAsString(), researcherObj.get("gender").getAsString(), researcherObj.get("primary_email").getAsString(), researcherObj.get("primary_phone").getAsString(), researcherObj.get("institution").getAsString(), researcherObj.get("field_of_study").getAsString(),Integer.parseInt(researcherObj.get("years_of_exp").getAsString())));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+					updateCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(updateCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE", updateCount + " Researchers were updated successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + updateCount +" Researchers were Updated. Updating failed for "+ (elemCount-updateCount) + " Researchers.");
+			}
+
+		} catch (NumberFormatException ex) {
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: Invalid input format. " + ex.getMessage());
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+
+	@DELETE
+	@Path("/researchers")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String deleteResearcher(String researcherJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject researcherJSON_parsed = new JsonParser().parse(researcherJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!researcherJSON_parsed.has("researchers")) {
+				return (researcher.deleteResearcher(researcherJSON_parsed.get("user_id").getAsString())).toString();
+			} else if (!researcherJSON_parsed.get("researchers").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int deleteCount = 0;
+			int elemCount = researcherJSON_parsed.get("researchers").getAsJsonArray().size();
+
+			for (JsonElement researcherElem : researcherJSON_parsed.get("researchers").getAsJsonArray()) {
+				JsonObject researcherObj = researcherElem.getAsJsonObject();
+				JsonObject response = (researcher.deleteResearcher(researcherObj.get("user_id").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+					deleteCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(deleteCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE", deleteCount + " Researchers were deleted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + deleteCount +" Researchers were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Researchers.");
+			}
+
 		} catch (Exception ex){
 			result = new JsonObject();
 			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());

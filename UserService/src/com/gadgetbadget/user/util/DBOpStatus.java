@@ -2,7 +2,7 @@ package com.gadgetbadget.user.util;
 
 public enum DBOpStatus {
 	UNSUCCESSFUL,
-	SUCCESSFULL,
+	SUCCESSFUL,
 	EXCEPTION,
 	ERROR,
 	UNKNOWN

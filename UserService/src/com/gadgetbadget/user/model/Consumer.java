@@ -44,7 +44,7 @@ public class Consumer extends User{
 			result = new JsonObject();			
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Consumer Inserted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
@@ -60,7 +60,7 @@ public class Consumer extends User{
 		return result;
 	}
 
-	// read consumers
+	//Read Consumer
 	public JsonObject readConsumers() {
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();
@@ -80,8 +80,8 @@ public class Consumer extends User{
 
 			if(!rs.isBeforeFirst()) {
 				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
-				result.addProperty("MESSAGE","No Consumers found.");
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE","Request Processed. No Consumers found.");
 				return result;
 			}
 
@@ -112,7 +112,7 @@ public class Consumer extends User{
 		return result;
 	}
 
-	// update consumers
+	//Update Consumer
 	public JsonObject updateConsumer(String user_id,String username, String password, String first_name, String last_name, String gender, String primary_email, String primary_phone)
 	{
 		JsonObject result = null;
@@ -149,7 +149,7 @@ public class Consumer extends User{
 			result = new JsonObject();			
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Consumer " + user_id + " Updated successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
@@ -165,7 +165,7 @@ public class Consumer extends User{
 		return result;
 	}
 
-	// delete consumers
+	//Delete Consumer
 	public JsonObject deleteConsumer(String user_id) {
 		JsonObject result = null;
 		int status = 0;
@@ -194,7 +194,7 @@ public class Consumer extends User{
 			result = new JsonObject();			
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Consumer " + user_id + " deleted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());

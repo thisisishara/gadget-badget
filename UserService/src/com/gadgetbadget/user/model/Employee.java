@@ -46,9 +46,9 @@ public class Employee extends User{
 
 			status = (int) callableStmt.getInt(12);
 			result = new JsonObject();			
-			
+
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Employee Inserted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
@@ -64,7 +64,7 @@ public class Employee extends User{
 		return result;
 	}
 
-	// read employees
+	//Read Employees
 	public JsonObject readEmployees() {
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();
@@ -84,8 +84,8 @@ public class Employee extends User{
 
 			if(!rs.isBeforeFirst()) {
 				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
-				result.addProperty("MESSAGE","No employees found.");
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE","Request Processed. No employees found.");
 				return result;
 			}
 
@@ -120,8 +120,8 @@ public class Employee extends User{
 		return result;
 	}
 
-	
-	// update employees
+
+	//Update Employee
 	public JsonObject updateEmployee(String user_id,String username, String password, String first_name, String last_name, String gender, String primary_email, String primary_phone, String gb_employee_id, String department, String date_hired)
 	{
 		JsonObject result = null;
@@ -156,9 +156,9 @@ public class Employee extends User{
 
 			status = (int) callableStmt.getInt(12);
 			result = new JsonObject();			
-			
+
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Employee " + user_id + " Updated successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
@@ -173,9 +173,9 @@ public class Employee extends User{
 		}
 		return result;
 	}
-	
 
-	// delete employees
+
+	//Delete Employee
 	public JsonObject deleteEmployee(String user_id) {
 		JsonObject result = null;
 		int status = 0;
@@ -199,9 +199,9 @@ public class Employee extends User{
 
 			status = (int) callableStmt.getInt(2);
 			result = new JsonObject();			
-			
+
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFULL.toString());
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
 				result.addProperty("MESSAGE", "Employee " + user_id + " deleted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
