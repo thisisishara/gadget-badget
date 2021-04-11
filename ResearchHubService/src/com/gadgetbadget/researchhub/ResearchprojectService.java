@@ -16,7 +16,7 @@ import com.google.gson.JsonParser;
 public class ResearchprojectService {
 	Category category = new Category();
 	
-	 // Roles related End-points.
+	 // Categories related End-points.
 		@GET
 		@Path("/categories")
 		@Produces(MediaType.APPLICATION_JSON)
