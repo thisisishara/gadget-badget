@@ -100,7 +100,6 @@ public class SecurityService {
 		return result.toString();
 	}
 
-
 	@PUT
 	@Path("/roles")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -123,7 +122,7 @@ public class SecurityService {
 				return result.toString();
 			}
 
-			int insertCount = 0;
+			int updateCount = 0;
 			int elemCount = roleJSON_parsed.get("roles").getAsJsonArray().size();
 
 			for (JsonElement roleElem : roleJSON_parsed.get("roles").getAsJsonArray()) {
@@ -131,17 +130,17 @@ public class SecurityService {
 				JsonObject response = (role.updateRole(roleObj.get("role_id").getAsString(), roleObj.get("role_description").getAsString()));
 
 				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
-					insertCount++;
+					updateCount++;
 				}
 			}
 
 			result = new JsonObject();
-			if(insertCount == elemCount) {
+			if(updateCount == elemCount) {
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", insertCount + " Roles were updated successfully.");
+				result.addProperty("MESSAGE", updateCount + " Roles were updated successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Only " + insertCount +" Roles were Updated. Updating failed for "+ (elemCount-insertCount) + " Roles.");
+				result.addProperty("MESSAGE", "Only " + updateCount +" Roles were Updated. Updating failed for "+ (elemCount-updateCount) + " Roles.");
 			}
 
 		} catch (Exception ex){
@@ -152,7 +151,6 @@ public class SecurityService {
 
 		return result.toString();
 	}
-
 
 	@DELETE
 	@Path("/roles")

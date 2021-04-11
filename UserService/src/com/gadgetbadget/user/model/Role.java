@@ -70,8 +70,8 @@ public class Role extends DBHandler {
 
 			if(!rs.isBeforeFirst()) {
 				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE","No Roles found.");
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE","Request Processed. No Roles found.");
 				return result;
 			}
 

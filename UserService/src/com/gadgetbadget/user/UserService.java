@@ -1,5 +1,9 @@
 package com.gadgetbadget.user;	
 
+import javax.ws.rs.PathParam;
+
+import java.util.List;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -7,15 +11,18 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.gadgetbadget.user.model.Consumer;
 import com.gadgetbadget.user.model.Employee;
 import com.gadgetbadget.user.model.Funder;
-import com.gadgetbadget.user.model.PaymentInfo;
+import com.gadgetbadget.user.model.PaymentMethod;
 import com.gadgetbadget.user.model.Researcher;
 import com.gadgetbadget.user.model.User;
 import com.gadgetbadget.user.util.DBOpStatus;
+import com.gadgetbadget.user.util.UserType;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -27,7 +34,7 @@ public class UserService {
 	Researcher researcher = new Researcher();
 	Funder funder = new Funder();
 	Consumer consumer = new Consumer();
-	PaymentInfo paymentInfo = new PaymentInfo();
+	PaymentMethod paymentMethod = new PaymentMethod();
 
 
 	//Employee End-points
@@ -359,6 +366,259 @@ public class UserService {
 		return result.toString();
 	}
 
+	//Consumer-payment method End-points
+	@GET
+	@Path("/consumers/{consumer_id}/payment-methods")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String readConPayMethods(@PathParam("consumer_id") String consumer_id) {
+		return paymentMethod.readPaymentMethods(consumer_id, UserType.CNSMR).toString();
+	}
+	
+	
+	@GET
+	@Path("/consumers/{consumer_id}/payment-methods")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String readConPayMethod(@PathParam("consumer_id") String consumer_id, @QueryParam("limited") boolean limited, String paymentMethodJSON) {
+		JsonObject result = null;
+		
+		if(!limited) {
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+			result.addProperty("MESSAGE", "Invalid Request detected. Reading all Payment Method(s) of " + consumer_id + " aborted.");
+			return result.toString();
+		}
+		
+		try {
+			
+			JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!paymentMethodJSON_parsed.has("payment_methods")) {
+				return (paymentMethod.readSpecificPaymentMethod(consumer_id, UserType.CNSMR, paymentMethodJSON_parsed.get("creditcard_no").getAsString())).toString();
+			} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int readCount = 0;
+			int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+			JsonArray resultArray = new JsonArray();
+			
+			for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
+				JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
+				JsonObject response = (paymentMethod.readSpecificPaymentMethod(consumer_id, UserType.CNSMR, paymentMethodObj.get("creditcard_no").getAsString()));
+
+				if (!response.has("MESSAGE")) {
+					readCount++;
+					resultArray.add(response);
+				}
+			}
+
+			result = new JsonObject();
+			result.add("payment-methods", resultArray);
+			if(readCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE", readCount + " Payment Methods were retrieved successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + readCount +" Payment Methods were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Payment Methods.");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+
+	@POST
+	@Path("/consumers/{consumer_id}/payment-methods")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String insertConPayMethod(@PathParam("consumer_id") String consumer_id, String paymentMethodJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!paymentMethodJSON_parsed.has("payment_methods")) {
+				return (paymentMethod.insertPaymentMethod(consumer_id, paymentMethodJSON_parsed.get("creditcard_type").getAsString(), paymentMethodJSON_parsed.get("creditcard_no").getAsString(), paymentMethodJSON_parsed.get("creditcard_security_no").getAsString(), paymentMethodJSON_parsed.get("exp_date").getAsString(), paymentMethodJSON_parsed.get("billing_address").getAsString(), UserType.CNSMR)).toString();
+			} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int insertCount = 0;
+			int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+
+			for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
+				JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
+				JsonObject response = (paymentMethod.insertPaymentMethod(consumer_id, paymentMethodObj.get("creditcard_type").getAsString(), paymentMethodObj.get("creditcard_no").getAsString(), paymentMethodObj.get("creditcard_security_no").getAsString(), paymentMethodObj.get("exp_date").getAsString(), paymentMethodObj.get("billing_address").getAsString(), UserType.CNSMR));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+					insertCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(insertCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE", insertCount + " Payment Methods were inserted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + insertCount +" Payment Methods were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Payment Methods.");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+
+	@PUT
+	@Path("/consumers/{consumer_id}/payment-methods")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String updateConPayMethod(@PathParam("consumer_id") String consumer_id, String paymentMethodJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!paymentMethodJSON_parsed.has("payment_methods")) {
+				return (paymentMethod.updatePaymentMethod(consumer_id, paymentMethodJSON_parsed.get("creditcard_type").getAsString(), paymentMethodJSON_parsed.get("new_creditcard_no").getAsString(), paymentMethodJSON_parsed.get("creditcard_no").getAsString(), paymentMethodJSON_parsed.get("creditcard_security_no").getAsString(), paymentMethodJSON_parsed.get("exp_date").getAsString(), paymentMethodJSON_parsed.get("billing_address").getAsString(), UserType.CNSMR)).toString();
+			} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int updateCount = 0;
+			int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+
+			for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
+				JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
+				JsonObject response = (paymentMethod.updatePaymentMethod(consumer_id, paymentMethodObj.get("creditcard_type").getAsString(), paymentMethodObj.get("new_creditcard_no").getAsString(), paymentMethodObj.get("creditcard_no").getAsString(), paymentMethodObj.get("creditcard_security_no").getAsString(), paymentMethodObj.get("exp_date").getAsString(), paymentMethodObj.get("billing_address").getAsString(), UserType.CNSMR));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+					updateCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(updateCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE", updateCount + " Payment Methods were updated successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + updateCount +" Payment Methods were Updated. Updating failed for "+ (elemCount-updateCount) + " Consumers.");
+			}
+
+		} catch (Exception ex){
+			System.out.println(ex.getMessage());
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+	@DELETE
+	@Path("/consumers/{consumer_id}/payment-methods")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String deleteConPayMethod(@PathParam("consumer_id") String consumer_id, String paymentMethodJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!paymentMethodJSON_parsed.has("payment_methods")) {
+				return (paymentMethod.deletePaymentMethod(consumer_id, UserType.CNSMR, paymentMethodJSON_parsed.get("creditcard_no").getAsString())).toString();
+			} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int deleteCount = 0;
+			int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+
+			for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
+				JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
+				JsonObject response = (paymentMethod.deletePaymentMethod(consumer_id, UserType.CNSMR, paymentMethodObj.get("creditcard_no").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+					deleteCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(deleteCount == elemCount) {
+				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
+				result.addProperty("MESSAGE", deleteCount + " Consumers were deleted successfully.");
+			} else {
+				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
+				result.addProperty("MESSAGE", "Only " + deleteCount +" Consumers were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Consumers.");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
+	@DELETE
+	@Path("/consumers/{consumer_id}/payment-methods")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String deleteConPayMethods(@PathParam("consumer_id") String consumer_id, @QueryParam("all") boolean isAllowed)
+	{
+		JsonObject result = null;
+		
+		if(!isAllowed) {
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.ERROR.toString());
+			result.addProperty("MESSAGE", "Invalid Request detected. Deleting all Payment Methods of " + consumer_id + " aborted.");
+			return result.toString();
+		}
+		
+		try {
+			result = (paymentMethod.deletePaymentMethods(consumer_id, UserType.CNSMR));
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+		return result.toString();
+	}
+
 
 	//Funder End-points
 	@GET
@@ -593,7 +853,7 @@ public class UserService {
 	}
 
 
-	
+
 	@PUT
 	@Path("/researchers")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -714,8 +974,9 @@ public class UserService {
 	{
 		Client c = Client.create();
 		WebResource resource = c.resource("http://127.0.0.1:8080/PaymentService/PaymentService/Test/");
-		String output = resource.get(String.class);
+		JsonObject output = resource.get(JsonObject.class);
 		return "Response of Payment Server: " + output;
-	}*/
+	}
+	*/
 }
 
