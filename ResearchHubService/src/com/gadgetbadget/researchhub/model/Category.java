@@ -21,7 +21,7 @@ public class Category extends DBHandler {
 				return result; 
 			}
 
-			String query = "INSERT INTO `category`(`category_name`,'category_description','last_modified_by') VALUES(?,?,?);";
+			String query = "INSERT INTO `research_category`(`category_name`,`category_description`,`last_modified_by`) VALUES(?,?,?);";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
 			preparedStmt.setString(1, category_name);
