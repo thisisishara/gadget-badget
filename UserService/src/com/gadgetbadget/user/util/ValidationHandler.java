@@ -9,6 +9,10 @@ public class ValidationHandler {
 			return false;
 		}
 		
+		if(user_id.length()!=10) {
+			return false;
+		}
+		
 		if(user_id.substring(0,2).equalsIgnoreCase("AD")) {
 			newUser_type = UserType.ADMIN;
 		} else if(user_id.substring(0,2).equalsIgnoreCase("CN")) {

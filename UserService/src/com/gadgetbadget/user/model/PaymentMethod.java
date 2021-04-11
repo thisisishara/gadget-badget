@@ -12,17 +12,10 @@ import com.google.gson.JsonObject;
 
 public class PaymentMethod extends DBHandler{
 	//Insert a PaymentMethod
-	public JsonObject insertPaymentMethod(String user_id, String creaditcard_type, String creditcard_no, String creditcard_security_no, String exp_date, String billing_address, UserType user_type) {
+	public JsonObject insertPaymentMethod(String user_id, String creaditcard_type, String creditcard_no, String creditcard_security_no, String exp_date, String billing_address) {
 		JsonObject result = null;
 
 		try {
-			//verify user_type	
-			if(!new ValidationHandler().validateUserType(user_id, user_type)) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Invalid User ID Format.");
-				return result; 
-			}
 
 			Connection conn = getConnection();
 			if (conn == null) {
@@ -76,7 +69,7 @@ public class PaymentMethod extends DBHandler{
 				result = new JsonObject();
 				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
 				result.addProperty("MESSAGE","Invalid User ID Format.");
-				return result; 
+				return result;
 			}			
 
 			Connection conn = getConnection();
@@ -114,7 +107,7 @@ public class PaymentMethod extends DBHandler{
 			conn.close();
 
 			result = new JsonObject();
-			result.add("paymentmethod", resultArray);
+			result.add("payment_methods", resultArray);
 
 		}
 		catch (Exception ex)
@@ -128,19 +121,11 @@ public class PaymentMethod extends DBHandler{
 	}
 	
 	//Read a specific PaymentMethod
-	public JsonObject readSpecificPaymentMethod(String user_id, UserType user_type, String creditcard_no) {
+	public JsonObject readSpecificPaymentMethod(String user_id, String creditcard_no) {
 		JsonObject result = null;
 
 		try
 		{
-			//verify user_type
-			if(!new ValidationHandler().validateUserType(user_id, user_type)) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Invalid User ID Format.");
-				return result; 
-			}			
-
 			Connection conn = getConnection();
 			if (conn == null) {
 				result = new JsonObject();
@@ -159,7 +144,7 @@ public class PaymentMethod extends DBHandler{
 			if(!rs.isBeforeFirst()) {
 				result = new JsonObject();
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE","Request Processed. No Payment Method found for user " + user_id + ".");
+				result.addProperty("MESSAGE","Request Processed. No Payment Method found under " + creditcard_no + " for user " + user_id + ".");
 				return result;
 			}
 
@@ -187,20 +172,11 @@ public class PaymentMethod extends DBHandler{
 	}
 
 	//Update a PaymentMethod
-	public JsonObject updatePaymentMethod(String user_id, String creditcard_type, String new_creditcard_no, String creditcard_no, String creditcard_security_no, String exp_date, String billing_address, UserType user_type)
+	public JsonObject updatePaymentMethod(String user_id, String creditcard_type, String new_creditcard_no, String creditcard_no, String creditcard_security_no, String exp_date, String billing_address)
 	{
 		JsonObject result = null;
 
-		System.out.println("OK");
-		try {
-
-			//verify user_type	
-			if(!new ValidationHandler().validateUserType(user_id, user_type)) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Invalid User ID Format.");
-				return result; 
-			}			
+		try {			
 
 			Connection conn = getConnection();
 			if (conn == null) {
@@ -244,18 +220,10 @@ public class PaymentMethod extends DBHandler{
 	}
 
 	//Delete a Specific PaymentMethod
-	public JsonObject deletePaymentMethod(String user_id, UserType user_type, String creditcard_no) {
+	public JsonObject deletePaymentMethod(String user_id, String creditcard_no) {
 		JsonObject result = null;
 
 		try {
-
-			//verify user_type	
-			if(!new ValidationHandler().validateUserType(user_id, user_type)) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Invalid User ID Format.");
-				return result; 
-			}
 
 			Connection conn = getConnection();
 			if (conn == null) {
