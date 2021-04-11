@@ -64,14 +64,14 @@ public class Category extends DBHandler {
 				return result; 
 			}
 
-			String query = "SELECT * FROM `category`";
+			String query = "SELECT * FROM `research_category`";
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
 
 			if(!rs.isBeforeFirst()) {
 				result = new JsonObject();
 				result.addProperty("STATUS", "UNSUCCESSFUL");
-				result.addProperty("MESSAGE","No Roles found.");
+				result.addProperty("MESSAGE","No Categories found.");
 				return result;
 			}
 
@@ -88,7 +88,7 @@ public class Category extends DBHandler {
 			conn.close();
 
 			result = new JsonObject();
-			result.add("Category", resultArray);
+			result.add("categories", resultArray);
 
 		}
 		catch (Exception ex)
@@ -102,7 +102,7 @@ public class Category extends DBHandler {
 	}
 
 	//Update Category
-	public JsonObject updateRole(String category_id, String category_name,String category_description, String last_modified_by)
+	public JsonObject updateCategory(String category_id, String category_name,String category_description, String last_modified_by)
 	{
 		JsonObject result = null;
 		try {
@@ -114,7 +114,7 @@ public class Category extends DBHandler {
 				return result; 
 			}
 
-			String query = "UPDATE `category` SET `category_name`=?,'category_description=?, last_modified_by=? WHERE `category_id`=?;";
+			String query = "UPDATE `research_category` SET `category_name`=?,'category_description=?, last_modified_by=? WHERE `category_id`=?;";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
 			preparedStmt.setString(1, category_name);
@@ -156,7 +156,7 @@ public class Category extends DBHandler {
 				return result; 
 			}
 
-			String query = "DELETE FROM `category` WHERE `category_id`=?;";
+			String query = "DELETE FROM `research_category` WHERE `category_id`=?;";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
 			preparedStmt.setString(1, category_id);
