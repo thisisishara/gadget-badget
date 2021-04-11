@@ -114,7 +114,7 @@ public class Category extends DBHandler {
 				return result; 
 			}
 
-			String query = "UPDATE `research_category` SET `category_name`=?,'category_description=?, last_modified_by=? WHERE `category_id`=?;";
+			String query = "UPDATE `research_category` SET `category_name`=?,`category_description`=?, `last_modified_by`=? WHERE `category_id`=?;";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
 			preparedStmt.setString(1, category_name);
