@@ -79,7 +79,7 @@ public class Product_Category extends DBHandler{
 			}
 			
 			//SQL query
-			String query = "SELECT p.category_id, p.category_name, p.category_description"
+			String query = "SELECT p.`category_id`, p.`category_name`, p.`category_description`"
 					+ " FROM `product_category` p";
 			Statement stmt = con.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
@@ -217,7 +217,7 @@ public class Product_Category extends DBHandler{
 			}
 			
 			//SQL Queries
-			String query = "DELETE FROM `research_category` WHERE `category_id`=?;";
+			String query = "DELETE FROM `product_category` WHERE `category_id`=?;";
 			PreparedStatement prpdstmt = con.prepareStatement(query);
 			
 			prpdstmt.setString(1, catID);
@@ -229,10 +229,10 @@ public class Product_Category extends DBHandler{
 			//testing
 			if(status > 0) {
 				result.addProperty("STATUS", "SUCCESSFUL");
-				result.addProperty("Message", "Product_ Category Inserted successfully.");
+				result.addProperty("Message", "Product_ Category deleted successfully.");
 			} else {
 				result.addProperty("STATUS", "UNSUCCESSFUL");
-				result.addProperty("Message", "Unable to Insert Product_Category.");
+				result.addProperty("Message", "Unable to delete Product_Category.");
 			}
 		}
 		catch (Exception e) {

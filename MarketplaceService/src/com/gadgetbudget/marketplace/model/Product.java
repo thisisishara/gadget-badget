@@ -62,6 +62,52 @@ public class Product extends DBHandler{
 		return result;
 	}
 	
+	//read all products
+	public JsonObject readAllProducts() {
+		JsonObject result = null;
+		JsonArray resultsetArray = new JsonArray();	
+		
+		try {
+			//connection
+			Connection con = connect();
+			if (con == null) 
+			{ 
+				 result = new JsonObject();
+				 result.addProperty("STATUS","ERROR");
+				 result.addProperty("Messege", "Error while connecting to the database");
+				 return result;
+			}
+			
+			//SQL query
+			String query = "SELECT p.`researcher_id`, p.`product_name`, p.`product_description`,p.`category_id`,p.`available_items`, p.`price`"
+					+ " FROM `product` p";
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+			while(rs.next()) {
+				JsonObject productObject = new JsonObject();
+				productObject.addProperty("product_id", rs.getString("product_id"));
+				productObject.addProperty("researcher_id", rs.getString("researcher_id"));
+				productObject.addProperty("product_name", rs.getString("product_name"));
+				productObject.addProperty("product_description", rs.getString("product_description"));
+				productObject.addProperty("category_id", rs.getString("category_id"));
+				productObject.addProperty("available_items", rs.getInt("available_items"));
+				productObject.addProperty("price", rs.getDouble("price"));
+				resultsetArray.add(productObject);
+			}
+			con.close();
+			
+			result = new JsonObject();
+			result.add("products", resultsetArray);
+		}
+		catch (Exception e) {
+			result = new JsonObject();
+			result.addProperty("Message", "Problem with reading product_categories");
+			System.err.println(e.getMessage());
+		}
+		return result;
+	}
+	
 	//read product method
 	public JsonObject readProduct(String product_ID) {
 		JsonObject result = null;
@@ -169,4 +215,47 @@ public class Product extends DBHandler{
 	}
 	
 	//delete product method
+	public JsonObject deleteProduct(String product_id) {
+		JsonObject result = null;
+		
+		try {
+			//connection
+			Connection con = connect();
+			if (con == null) 
+			{ 
+				 result = new JsonObject();
+				 result.addProperty("STATUS","ERROR");
+				 result.addProperty("Messege", "Error while connecting to the database");
+				 return result;
+			}
+			
+			//SQL Queries
+			String query = "DELETE FROM `product` WHERE `product_id`=?;";
+			PreparedStatement prpdstmt = con.prepareStatement(query);
+			
+			prpdstmt.setString(1, product_id);
+			
+			int status = prpdstmt.executeUpdate();
+			con.close();
+			result = new JsonObject();
+			
+			//testing
+			if(status > 0) {
+				result.addProperty("STATUS", "SUCCESSFUL");
+				result.addProperty("Message", "Product deleted successfully.");
+			} else {
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("Message", "Unable to Delete Product.");
+			}
+		}
+		catch (Exception e) {
+			result = new JsonObject();
+			result.addProperty("Message", "Problem with deleting product_category");
+			System.err.println(e.getMessage());
+		}
+		
+		return result;
+		
+		
+	}
 }
