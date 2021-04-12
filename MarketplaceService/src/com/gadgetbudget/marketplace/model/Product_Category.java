@@ -188,10 +188,55 @@ public class Product_Category extends DBHandler{
 		}
 		catch (Exception e) {
 			result = new JsonObject();
-			result.addProperty("Message", "Problem with inserting product_category");
+			result.addProperty("Message", "Problem with updating product_category");
 			System.err.println(e.getMessage());
 		}
 		return result;
+	}
+	
+	//delete product_category
+	public JsonObject deleteProductCategory(String catID) {
+		JsonObject result = null;
+		
+		try {
+			//connection
+			Connection con = connect();
+			if (con == null) 
+			{ 
+				 result = new JsonObject();
+				 result.addProperty("STATUS","ERROR");
+				 result.addProperty("Messege", "Error while connecting to the database");
+				 return result;
+			}
+			
+			//SQL Queries
+			String query = "DELETE FROM `research_category` WHERE `category_id`=?;";
+			PreparedStatement prpdstmt = con.prepareStatement(query);
+			
+			prpdstmt.setString(1, catID);
+			
+			int status = prpdstmt.executeUpdate();
+			con.close();
+			result = new JsonObject();
+			
+			//testing
+			if(status > 0) {
+				result.addProperty("STATUS", "SUCCESSFUL");
+				result.addProperty("Message", "Product_ Category Inserted successfully.");
+			} else {
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("Message", "Unable to Insert Product_Category.");
+			}
+		}
+		catch (Exception e) {
+			result = new JsonObject();
+			result.addProperty("Message", "Problem with deleting product_category");
+			System.err.println(e.getMessage());
+		}
+		
+		return result;
+		
+		
 	}
 }
 
