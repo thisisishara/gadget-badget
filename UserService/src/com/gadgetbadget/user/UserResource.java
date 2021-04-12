@@ -27,7 +27,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 @Path("/users")
-public class UserService {	
+public class UserResource {	
 	User user = new User();
 	Employee employee = new Employee();
 	Researcher researcher = new Researcher();
