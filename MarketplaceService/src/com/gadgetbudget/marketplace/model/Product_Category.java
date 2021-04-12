@@ -25,6 +25,7 @@ public class Product_Category extends DBHandler{
 				 result = new JsonObject();
 				 result.addProperty("STATUS","ERROR");
 				 result.addProperty("Messege", "Error while connecting to the database");
+				 return result;
 			}
 			
 			String query = "INSERT INTO `product_category`( `category_name`, `category_description`, `last_modified_by`) "
@@ -74,6 +75,7 @@ public class Product_Category extends DBHandler{
 				 result = new JsonObject();
 				 result.addProperty("STATUS","ERROR");
 				 result.addProperty("Messege", "Error while connecting to the database");
+				 return result;
 			}
 			
 			//SQL query
@@ -115,6 +117,7 @@ public class Product_Category extends DBHandler{
 				 result = new JsonObject();
 				 result.addProperty("STATUS","ERROR");
 				 result.addProperty("Messege", "Error while connecting to the database");
+				 return result;
 			}
 			
 			//SQL query
@@ -143,6 +146,51 @@ public class Product_Category extends DBHandler{
 			System.err.println(e.getMessage());
 		}
 		
+		return result;
+	}
+	
+	//update product_category
+	public JsonObject updateProductCategory(String catID, String catName, String catDesc, String lastModified) {
+		JsonObject result = null;
+		
+		try {
+			//connection
+			Connection con = connect();
+			if (con == null) 
+			{ 
+				 result = new JsonObject();
+				 result.addProperty("STATUS","ERROR");
+				 result.addProperty("Messege", "Error while connecting to the database");
+				 return result;
+			}
+			
+			//SQL queries
+			String query = "UPDATE `product_category` SET `category_name`=?,`category_description`=?, `last_modified_by`=? WHERE `category_id`=?;";
+			PreparedStatement prpdstmt = con.prepareStatement(query);
+			
+			prpdstmt.setString(1, catName);
+			prpdstmt.setString(2, catDesc);
+			prpdstmt.setString(3, lastModified);
+			prpdstmt.setString(4, catID);
+			
+			int status = prpdstmt.executeUpdate();
+			con.close();
+			result = new JsonObject();
+			
+			//testing
+			if(status > 0) {
+				result.addProperty("STATUS", "SUCCESSFUL");
+				result.addProperty("Message", "Product_ Category Inserted successfully.");
+			} else {
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("Message", "Unable to Insert Product_Category.");
+			}
+		}
+		catch (Exception e) {
+			result = new JsonObject();
+			result.addProperty("Message", "Problem with inserting product_category");
+			System.err.println(e.getMessage());
+		}
 		return result;
 	}
 }
