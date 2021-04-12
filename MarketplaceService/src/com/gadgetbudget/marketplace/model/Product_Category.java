@@ -62,7 +62,7 @@ public class Product_Category extends DBHandler{
 	}
 	
 	//read all the product categories
-	public JsonObject readProductCategory() {
+	public JsonObject readAllProductCategory() {
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();	
 		
@@ -102,6 +102,49 @@ public class Product_Category extends DBHandler{
 		return result;
 	}
 	
+	//read selected product_category
+	public JsonObject readProductCategory(String category_id) {
+		JsonObject result = null;
+		JsonArray resultArray = new JsonArray();	
+			
+		try {
+			//connection
+			Connection con = connect();
+			if (con == null) 
+			{ 
+				 result = new JsonObject();
+				 result.addProperty("STATUS","ERROR");
+				 result.addProperty("Messege", "Error while connecting to the database");
+			}
+			
+			//SQL query
+			String query = "SELECT * FROM `product_category` "
+					+ " WHERE `category_id` = " + category_id;
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+			while(rs.next()) {
+				JsonObject categoryObject = new JsonObject();
+				categoryObject.addProperty("category_id", rs.getString("category_id"));
+				categoryObject.addProperty("category_name", rs.getString("category_name"));
+				categoryObject.addProperty("category_description", rs.getString("category_description"));
+				categoryObject.addProperty("date_last_updated", rs.getString("date_last_updated"));
+				categoryObject.addProperty("last_modified_by", rs.getString("last_modified_by"));
+				resultArray.add(categoryObject);
+			}
+			con.close();
+			
+			result = new JsonObject();
+			result.add("products", resultArray);
+		}
+		catch (Exception e) {
+			result = new JsonObject();
+			result.addProperty("Message", "Problem with reading product_category");
+			System.err.println(e.getMessage());
+		}
+		
+		return result;
+	}
 }
 
 
