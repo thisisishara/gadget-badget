@@ -108,7 +108,7 @@ public class Product extends DBHandler{
 		}
 		catch (Exception e) {
 			result = new JsonObject();
-			result.addProperty("Message", "Problem with inserting product");
+			result.addProperty("Message", "Problem with reading product");
 			System.err.println(e.getMessage());
 		}
 		
@@ -116,7 +116,57 @@ public class Product extends DBHandler{
 	}
 	
 	//update product method
-	
+	public JsonObject updateProduct(String product_id, String researcherID, String productName,  String productDescription, String catID, int availableItems, double price ) {
+		 
+		JsonObject result = null;
+		
+		try {
+			Connection con = connect();
+			if (con == null) 
+			{ 
+				 result = new JsonObject();
+				 result.addProperty("STATUS","ERROR");
+				 result.addProperty("Messege", "Error while connecting to the database");
+				 return result;
+			}
+			
+			String query = "UPDATE `product` SET `researcher_id` = ?, `product_name` = ?, `product_description` = ?, `category_id` + ?,`available_items` = ?, `price` = ?"
+					+ "WHERE product_id = ?;";
+			PreparedStatement preparedStmt = con.prepareStatement(query);
+			
+			
+			// binding values 
+			preparedStmt.setString(1, researcherID); 
+			preparedStmt.setString(2, productName); 
+			preparedStmt.setString(3, productDescription);
+			preparedStmt.setString(4, catID);
+			preparedStmt.setInt(5, availableItems);
+			preparedStmt.setDouble(6, price);
+			preparedStmt.setString(7, product_id);
+			
+
+			//execute the statement
+			int status = preparedStmt.executeUpdate();
+			con.close();
+			result = new JsonObject();
+			
+			//testing
+			if(status > 0) {
+				result.addProperty("STATUS", "SUCCESSFUL");
+				result.addProperty("Message", "Product Updated successfully.");
+			} else {
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("Message", "Unable to Update Product.");
+			}	
+		}
+		catch (Exception e) {
+			result = new JsonObject();
+			result.addProperty("Message", "Problem with updating product");
+			System.err.println(e.getMessage());
+		}
+		
+		return result;
+	}
 	
 	//delete product method
 }

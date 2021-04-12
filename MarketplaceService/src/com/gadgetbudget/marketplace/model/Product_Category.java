@@ -187,10 +187,10 @@ public class Product_Category extends DBHandler{
 			//testing
 			if(status > 0) {
 				result.addProperty("STATUS", "SUCCESSFUL");
-				result.addProperty("Message", "Product_ Category Inserted successfully.");
+				result.addProperty("Message", "Product_ Category updated successfully.");
 			} else {
 				result.addProperty("STATUS", "UNSUCCESSFUL");
-				result.addProperty("Message", "Unable to Insert Product_Category.");
+				result.addProperty("Message", "Unable to Update Product_Category.");
 			}
 		}
 		catch (Exception e) {
