@@ -129,9 +129,9 @@ public class Researchproject extends DBHandler {
 				preparedStmt.setString(2, product_name);
 				preparedStmt.setString(3, project_description);
 				preparedStmt.setString(4, project_start_date);
-				preparedStmt.setString(4, project_end_date);
-				preparedStmt.setString(4, expected_total_budget);
-				preparedStmt.setString(4, project_id);
+				preparedStmt.setString(5, project_end_date);
+				preparedStmt.setString(6, expected_total_budget);
+				preparedStmt.setString(7, project_id);
 
 				int status = preparedStmt.executeUpdate();
 				conn.close();
