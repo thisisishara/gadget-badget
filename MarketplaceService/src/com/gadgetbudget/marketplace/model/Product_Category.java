@@ -3,8 +3,11 @@ package com.gadgetbudget.marketplace.model;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 import com.gadgetbudget.marketplace.util.DBHandler;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 
@@ -14,12 +17,13 @@ public class Product_Category extends DBHandler{
 	public JsonObject insertProductCategory(String catName, String catDesc,  String lastModified) {
 		 
 		JsonObject result = null;
-		String output = "";
+		
 		try {
 			Connection con = connect();
 			if (con == null) 
 			{ 
 				 result = new JsonObject();
+				 result.addProperty("STATUS","ERROR");
 				 result.addProperty("Messege", "Error while connecting to the database");
 			}
 			
@@ -35,16 +39,70 @@ public class Product_Category extends DBHandler{
 			preparedStmt.setString(3, lastModified);
 
 			//execute the statement
-			preparedStmt.execute(); 
+			int status = preparedStmt.executeUpdate();
+			con.close();
+			result = new JsonObject();
 			
-			
-			output = "Inserted Successfully";
-			
+			//testing
+			if(status > 0) {
+				result.addProperty("STATUS", "SUCCESSFUL");
+				result.addProperty("Message", "Product_ Category Inserted successfully.");
+			} else {
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("Message", "Unable to Insert Product_Category.");
+			}	
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			result = new JsonObject();
+			result.addProperty("Message", "Problem with inserting product_category");
+			System.err.println(e.getMessage());
 		}
 		
-		return null;
+		return result;
 	}
+	
+	//read all the product categories
+	public JsonObject readProductCategory() {
+		JsonObject result = null;
+		JsonArray resultArray = new JsonArray();	
+		
+		try {
+			//connection
+			Connection con = connect();
+			if (con == null) 
+			{ 
+				 result = new JsonObject();
+				 result.addProperty("STATUS","ERROR");
+				 result.addProperty("Messege", "Error while connecting to the database");
+			}
+			
+			//SQL query
+			String query = "SELECT p.category_id, p.category_name, p.category_description"
+					+ " FROM `product_category` p";
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+			while(rs.next()) {
+				JsonObject categoryObject = new JsonObject();
+				categoryObject.addProperty("category_id", rs.getString("category_id"));
+				categoryObject.addProperty("category_name", rs.getString("category_name"));
+				categoryObject.addProperty("category_description", rs.getString("category_description"));
+				resultArray.add(categoryObject);
+			}
+			con.close();
+			
+			result = new JsonObject();
+			result.add("products", resultArray);
+		}
+		catch (Exception e) {
+			result = new JsonObject();
+			result.addProperty("Message", "Problem with reading product_categories");
+			System.err.println(e.getMessage());
+		}
+		return result;
+	}
+	
 }
+
+
+    
