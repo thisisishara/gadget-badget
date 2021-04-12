@@ -29,7 +29,7 @@ public class Product_Category extends DBHandler{
 			}
 			
 			String query = "INSERT INTO `product_category`( `category_name`, `category_description`, `last_modified_by`) "
-					+ "VALUES ([value-name],[value-description],[always give AD21000001(admin id)])";
+					+ "VALUES (?,?,?);";
 
 			PreparedStatement preparedStmt = con.prepareStatement(query);
 			
@@ -125,6 +125,13 @@ public class Product_Category extends DBHandler{
 					+ " WHERE `category_id` = " + category_id;
 			Statement stmt = con.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
+			
+			if(!rs.isBeforeFirst()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("MESSAGE","No Categories found.");
+				return result;
+			}
 			
 			while(rs.next()) {
 				JsonObject categoryObject = new JsonObject();
