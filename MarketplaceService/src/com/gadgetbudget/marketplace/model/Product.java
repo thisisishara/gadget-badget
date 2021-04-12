@@ -2,12 +2,16 @@ package com.gadgetbudget.marketplace.model;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 import com.gadgetbudget.marketplace.util.DBHandler;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class Product extends DBHandler{
 
+	//insert product method
 	public JsonObject insertProduct(String researcherID, String productName,  String productDescription, String catID, int availableItems, double price ) {
 		 
 		JsonObject result = null;
@@ -58,4 +62,61 @@ public class Product extends DBHandler{
 		return result;
 	}
 	
+	//read product method
+	public JsonObject readProduct(String product_ID) {
+		JsonObject result = null;
+		JsonArray resultsetArray = new JsonArray();
+		
+		try {
+			Connection con = connect();
+			if (con == null) 
+			{ 
+				 result = new JsonObject();
+				 result.addProperty("STATUS","ERROR");
+				 result.addProperty("Messege", "Error while connecting to the database");
+				 return result;
+			}
+			
+			//SQL queries
+			String query = "SELECT * FROM `product` WHERE `product_id` = " + product_ID;
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+			if(!rs.isBeforeFirst()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("MESSAGE","No Categories found.");
+				return result;
+			}
+			
+			while(rs.next()) {
+				JsonObject productObject = new JsonObject();
+				productObject.addProperty("product_id", rs.getString("product_id"));
+				productObject.addProperty("researcher_id", rs.getString("researcher_id"));
+				productObject.addProperty("product_name", rs.getString("product_name"));
+				productObject.addProperty("product_description", rs.getString("product_description"));
+				productObject.addProperty("category_id", rs.getString("category_id"));
+				productObject.addProperty("available_items", rs.getInt("available_items"));
+				productObject.addProperty("price", rs.getDouble("price"));
+				productObject.addProperty("date_added", rs.getString("date_added"));
+				resultsetArray.add(productObject);
+			}
+			
+			con.close();
+			result = new JsonObject();
+			result.add("products", resultsetArray);
+		}
+		catch (Exception e) {
+			result = new JsonObject();
+			result.addProperty("Message", "Problem with inserting product");
+			System.err.println(e.getMessage());
+		}
+		
+		return result;
+	}
+	
+	//update product method
+	
+	
+	//delete product method
 }

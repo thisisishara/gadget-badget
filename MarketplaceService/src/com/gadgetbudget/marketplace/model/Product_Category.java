@@ -107,7 +107,7 @@ public class Product_Category extends DBHandler{
 	//read selected product_category
 	public JsonObject readProductCategory(String category_id) {
 		JsonObject result = null;
-		JsonArray resultArray = new JsonArray();	
+		JsonArray resultsetArray = new JsonArray();	
 			
 		try {
 			//connection
@@ -140,12 +140,12 @@ public class Product_Category extends DBHandler{
 				categoryObject.addProperty("category_description", rs.getString("category_description"));
 				categoryObject.addProperty("date_last_updated", rs.getString("date_last_updated"));
 				categoryObject.addProperty("last_modified_by", rs.getString("last_modified_by"));
-				resultArray.add(categoryObject);
+				resultsetArray.add(categoryObject);
 			}
 			con.close();
 			
 			result = new JsonObject();
-			result.add("products", resultArray);
+			result.add("product categories", resultsetArray);
 		}
 		catch (Exception e) {
 			result = new JsonObject();
