@@ -7,43 +7,43 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 
 import com.gadgetbadget.user.model.Role;
 import com.gadgetbadget.user.util.DBOpStatus;
+import com.gadgetbadget.user.util.JsonResponseBuilder;
+import com.gadgetbadget.user.util.UserType;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 @Path("/security")
-public class SecurityService {
+public class SecurityResource {
 	Role role = new Role();
 
-	// Signing End-point
+	//Authentication End-point
 	@POST
-	@Path("/login")
+	@Path("/authenticate")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public String login() {
+
 		return "Login is not implemented yet.";
 	}
 
-	// Authenticating End-point
-	@POST
-	@Path("/authentication")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public String authenticate() {
-		return "Login is not implemented yet.";
-	}
-
-
-	// Roles related End-points.
+	//Roles related End-points.
 	@GET
 	@Path("/roles")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String readRoles()
+	public String readRoles(@Context SecurityContext securityContext)
 	{
+		//Allow only UserType ADMIN
+		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), ("User Type is Invalid - "+ securityContext.isUserInRole("ADMIN")).toString()).toString();
+		}
+
 		return role.readRoles().toString();
 	}
 
@@ -52,9 +52,14 @@ public class SecurityService {
 	@Path("/roles")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertRole(String roleJSON)
+	public String insertRole(String roleJSON, @Context SecurityContext securityContext)
 	{
 		JsonObject result = null;
+
+		//Allow only UserType ADMIN
+		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), ("User Type is Invalid - "+ securityContext.isUserInRole("ADMIN")).toString()).toString();
+		}
 
 		try {
 
@@ -104,9 +109,14 @@ public class SecurityService {
 	@Path("/roles")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String updateRole(String roleJSON)
+	public String updateRole(String roleJSON, @Context SecurityContext securityContext)
 	{
 		JsonObject result = null;
+
+		//Allow only UserType ADMIN
+		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), ("User Type is Invalid - "+ securityContext.isUserInRole("ADMIN")).toString()).toString();
+		}
 
 		try {
 
@@ -156,9 +166,14 @@ public class SecurityService {
 	@Path("/roles")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String deleteRole(String roleJSON)
+	public String deleteRole(String roleJSON, @Context SecurityContext securityContext)
 	{
 		JsonObject result = null;
+
+		//Allow only UserType ADMIN
+		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), ("User Type is Invalid - "+ securityContext.isUserInRole("ADMIN")).toString()).toString();
+		}
 
 		try {
 
