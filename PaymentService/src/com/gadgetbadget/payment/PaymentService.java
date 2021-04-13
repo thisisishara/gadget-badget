@@ -24,9 +24,9 @@ public class PaymentService {
 		return payment.readPayment().toString();
 	}
 
-	/*
+	
 	@POST
-	@Path("/payments")
+	@Path("/")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public String insertPayment(String paymentJSON)
@@ -40,8 +40,8 @@ public class PaymentService {
 			if(!paymentJSON_parsed.has("payments")) {
 				return (payment.insertPayment(
 						paymentJSON_parsed.get("consumer_id").getAsString(), 
-						paymentJSON_parsed.get("`product_id").getAsString(), 
-						paymentJSON_parsed.get("payment_amount").getAsFloat(),toString());
+						paymentJSON_parsed.get("product_id").getAsString(), 
+						paymentJSON_parsed.get("payment_amount").getAsFloat()).toString());
 			} else if (!paymentJSON_parsed.get("payments").isJsonArray()) {
 				result = new JsonObject();
 				result.addProperty("STATUS", "ERROR");
@@ -50,14 +50,14 @@ public class PaymentService {
 			}
 
 			int insertCount = 0;
-			int elemCount = paymentJSON_parsed.get("employees").getAsJsonArray().size();
+			int elemCount = paymentJSON_parsed.get("payments").getAsJsonArray().size();
 
 			for (JsonElement paymentElem : paymentJSON_parsed.get("payments").getAsJsonArray()) {
 				JsonObject paymentObj = paymentElem.getAsJsonObject();
 				JsonObject response = (payment.insertPayment(
 						paymentObj.get("consumer_id").getAsString(), 
-						paymentObj.get("`product_id").getAsString(), 
-						paymentObj.get("payment_amount").getAsFloat(),toString()); 
+						paymentObj.get("product_id").getAsString(), 
+						paymentObj.get("payment_amount").getAsFloat()));
 						
 
 				if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
@@ -81,7 +81,7 @@ public class PaymentService {
 		}
 
 		return result.toString();
-	}*/
+	}
 
 
 }
