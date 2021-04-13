@@ -25,7 +25,7 @@ public class Payment extends DBHandler{
 				return result; 
 			}
 
-			String query = "SELECT p.payment_id, p.consumer_id, p.product_id, p.payment_amount, p.date_payed, p.service_charge_rate, m.creditcard_no, m.card_type p.applied_tax_rate FROM `payment` p,`paymentmethodinfo` m WHERE p.payment_id = m.payment_id";
+			String query = "SELECT * FROM `payment` p LEFT JOIN `paymentmethodinfo` pmi on p.`payment_id` = pmi.`payment_id`;";
 			Statement stmt = conn.createStatement();
 			ResultSet py = stmt.executeQuery(query);
 
