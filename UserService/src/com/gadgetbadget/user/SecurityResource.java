@@ -12,6 +12,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
 import com.gadgetbadget.user.model.Role;
+import com.gadgetbadget.user.model.User;
+import com.gadgetbadget.user.security.JWTHandler;
 import com.gadgetbadget.user.util.DBOpStatus;
 import com.gadgetbadget.user.util.JsonResponseBuilder;
 import com.gadgetbadget.user.util.UserType;
@@ -22,16 +24,46 @@ import com.google.gson.JsonParser;
 @Path("/security")
 public class SecurityResource {
 	Role role = new Role();
+	User user = new User();
 
 	//Authentication End-point
 	@POST
 	@Path("/authenticate")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String login() {
+	public String authenticate(String authJSON) {
+		JsonObject result = null;
+		try {
 
-		return "Login is not implemented yet.";
+			JsonObject authJSON_parsed = new JsonParser().parse(authJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(! (authJSON_parsed.has("username") && authJSON_parsed.has("password"))) {
+				return new JsonResponseBuilder().getJsonResponse( DBOpStatus.ERROR.toString(), "Invalid JSON Object.").toString();
+			}
+			
+			result = user.getUserById(authJSON_parsed.get("username").getAsString(), authJSON_parsed.get("password").getAsString());
+			
+			if (result==null || !result.has("username") || !result.has("password")) {
+				return new JsonResponseBuilder().getJsonResponse( DBOpStatus.ERROR.toString(), "User not found.").toString();
+			}
+			
+			String jwt = new JWTHandler().generateToken(result.get("username").getAsString(), result.get("user_id").getAsString(), result.get("role").getAsString());
+			
+			if (! (jwt==null || new JWTHandler().validateToken(jwt))) {
+				return new JsonResponseBuilder().getJsonResponse( DBOpStatus.ERROR.toString(), "Failed to Issue a JWT Authentication Token.").toString();
+			}
+			
+			result = new JsonObject();
+			result.addProperty("JWT Auth Token", jwt);
+
+		} catch (Exception ex){
+			result = new JsonResponseBuilder().getJsonResponse(DBOpStatus.EXCEPTION.toString(), "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
 	}
+	
 
 	//Roles related End-points.
 	@GET
@@ -41,7 +73,7 @@ public class SecurityResource {
 	{
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), ("User Type is Invalid - "+ securityContext.isUserInRole("ADMIN")).toString()).toString();
+			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), "You are not Authorized to Perform this action.").toString();
 		}
 
 		return role.readRoles().toString();
@@ -58,7 +90,7 @@ public class SecurityResource {
 
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), ("User Type is Invalid - "+ securityContext.isUserInRole("ADMIN")).toString()).toString();
+			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), "You are not Authorized to Perform this action.").toString();
 		}
 
 		try {
@@ -115,7 +147,7 @@ public class SecurityResource {
 
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), ("User Type is Invalid - "+ securityContext.isUserInRole("ADMIN")).toString()).toString();
+			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), "You are not Authorized to Perform this action.").toString();
 		}
 
 		try {
@@ -172,7 +204,7 @@ public class SecurityResource {
 
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), ("User Type is Invalid - "+ securityContext.isUserInRole("ADMIN")).toString()).toString();
+			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), "You are not Authorized to Perform this action.").toString();
 		}
 
 		try {

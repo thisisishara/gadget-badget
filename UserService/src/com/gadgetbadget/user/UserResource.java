@@ -10,7 +10,11 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.gadgetbadget.user.model.Consumer;
 import com.gadgetbadget.user.model.Employee;
@@ -19,6 +23,7 @@ import com.gadgetbadget.user.model.PaymentMethod;
 import com.gadgetbadget.user.model.Researcher;
 import com.gadgetbadget.user.model.User;
 import com.gadgetbadget.user.util.DBOpStatus;
+import com.gadgetbadget.user.util.JsonResponseBuilder;
 import com.gadgetbadget.user.util.UserType;
 import com.gadgetbadget.user.util.ValidationHandler;
 import com.google.gson.JsonArray;
@@ -35,12 +40,18 @@ public class UserResource {
 	Consumer consumer = new Consumer();
 	PaymentMethod paymentMethod = new PaymentMethod();
 
+	ResponseBuilder builder = null;
+
 	//List of End-points for UserTypes
 	//Employee End-points
 	@GET
 	@Path("/employees")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String readEmployees() {
+	public String readEmployees(@Context SecurityContext securityContext) {
+//		//Allow only UserType ADMIN
+//		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+//			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), "You are not Authorized to Perform this action.").toString();
+//		}
 		return employee.readEmployees().toString();
 	}
 
@@ -48,7 +59,7 @@ public class UserResource {
 	@Path("/employees")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertEmployee(String employeeJSON)
+	public String insertEmployee(String employeeJSON, @Context SecurityContext securityContext)
 	{
 		JsonObject result = null;
 
@@ -75,6 +86,11 @@ public class UserResource {
 				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
 					insertCount++;
 				}
+			}
+
+			//Limit multiple inserts only for ADMINs
+			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+				return new JsonResponseBuilder().getJsonResponse(Response.Status.UNAUTHORIZED.toString().toUpperCase(), "You are not Authorized to Perform this action.").toString();
 			}
 
 			result = new JsonObject();
@@ -211,7 +227,7 @@ public class UserResource {
 	@Path("/consumers")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertConsumer(String consumerJSON)
+	public String insertConsumer(String consumerJSON, @Context SecurityContext securityContext)
 	{
 		JsonObject result = null;
 
@@ -227,6 +243,11 @@ public class UserResource {
 				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
 				result.addProperty("MESSAGE","Invalid JSON Object.");
 				return result.toString();
+			}
+
+			//Limit multiple inserts only for ADMINs
+			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+				return new JsonResponseBuilder().getJsonResponse(Response.Status.UNAUTHORIZED.toString().toUpperCase(), "You are not Authorized to Perform this action.").toString();
 			}
 
 			int insertCount = 0;
@@ -377,7 +398,7 @@ public class UserResource {
 	@Path("/funders")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertFunder(String funderJSON)
+	public String insertFunder(String funderJSON, @Context SecurityContext securityContext)
 	{
 		JsonObject result = null;
 
@@ -393,6 +414,11 @@ public class UserResource {
 				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
 				result.addProperty("MESSAGE","Invalid JSON Object.");
 				return result.toString();
+			}
+
+			//Limit multiple inserts only for ADMINs
+			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+				return new JsonResponseBuilder().getJsonResponse(Response.Status.UNAUTHORIZED.toString().toUpperCase(), "You are not Authorized to Perform this action.").toString();
 			}
 
 			int insertCount = 0;
@@ -544,7 +570,7 @@ public class UserResource {
 	@Path("/researchers")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertResearcher(String researcherJSON)
+	public String insertResearcher(String researcherJSON, @Context SecurityContext securityContext)
 	{
 		JsonObject result = null;
 
@@ -562,6 +588,11 @@ public class UserResource {
 				return result.toString();
 			}
 
+			//Limit multiple inserts only for ADMINs
+			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+				return new JsonResponseBuilder().getJsonResponse(Response.Status.UNAUTHORIZED.toString().toUpperCase(), "You are not Authorized to Perform this action.").toString();
+			}
+			
 			int insertCount = 0;
 			int elemCount = researcherJSON_parsed.get("researchers").getAsJsonArray().size();
 
@@ -733,7 +764,7 @@ public class UserResource {
 			result.addProperty("MESSAGE", "Invalid Request detected. Reading all Payment Method(s) of " + consumer_id + " aborted.");
 			return result.toString();
 		}
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(consumer_id, UserType.CNSMR)) {
 			result = new JsonObject();
@@ -797,7 +828,7 @@ public class UserResource {
 	public String insertConPayMethod(@PathParam("consumer_id") String consumer_id, String paymentMethodJSON)
 	{
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(consumer_id, UserType.CNSMR)) {
 			result = new JsonObject();
@@ -858,7 +889,7 @@ public class UserResource {
 	public String updateConPayMethod(@PathParam("consumer_id") String consumer_id, String paymentMethodJSON)
 	{
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(consumer_id, UserType.CNSMR)) {
 			result = new JsonObject();
@@ -919,7 +950,7 @@ public class UserResource {
 	public String deleteConPayMethod(@PathParam("consumer_id") String consumer_id, String paymentMethodJSON)
 	{
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(consumer_id, UserType.CNSMR)) {
 			result = new JsonObject();
@@ -1011,7 +1042,7 @@ public class UserResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String readFunPayMethod(@PathParam("funder_id") String funder_id, @QueryParam("limited") boolean limited, String paymentMethodJSON) {
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(funder_id, UserType.FUNDR)) {
 			result = new JsonObject();
@@ -1082,7 +1113,7 @@ public class UserResource {
 	public String insertFunPayMethod(@PathParam("funder_id") String funder_id, String paymentMethodJSON)
 	{
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(funder_id, UserType.FUNDR)) {
 			result = new JsonObject();
@@ -1143,7 +1174,7 @@ public class UserResource {
 	public String updateFunPayMethod(@PathParam("funder_id") String funder_id, String paymentMethodJSON)
 	{
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(funder_id, UserType.FUNDR)) {
 			result = new JsonObject();
@@ -1204,7 +1235,7 @@ public class UserResource {
 	public String deleteFunPayMethod(@PathParam("funder_id") String funder_id, String paymentMethodJSON)
 	{
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(funder_id, UserType.FUNDR)) {
 			result = new JsonObject();
@@ -1296,7 +1327,7 @@ public class UserResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String readResPayMethod(@PathParam("researcher_id") String researcher_id, @QueryParam("limited") boolean limited, String paymentMethodJSON) {
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(researcher_id, UserType.RSCHR)) {
 			result = new JsonObject();
@@ -1367,7 +1398,7 @@ public class UserResource {
 	public String insertResPayMethod(@PathParam("researcher_id") String researcher_id, String paymentMethodJSON)
 	{
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(researcher_id, UserType.RSCHR)) {
 			result = new JsonObject();
@@ -1428,7 +1459,7 @@ public class UserResource {
 	public String updateResPayMethod(@PathParam("researcher_id") String researcher_id, String paymentMethodJSON)
 	{
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(researcher_id, UserType.RSCHR)) {
 			result = new JsonObject();
@@ -1489,7 +1520,7 @@ public class UserResource {
 	public String deleteResPayMethod(@PathParam("researcher_id") String researcher_id, String paymentMethodJSON)
 	{
 		JsonObject result = null;
-		
+
 		//verify user_type
 		if(!new ValidationHandler().validateUserType(researcher_id, UserType.RSCHR)) {
 			result = new JsonObject();

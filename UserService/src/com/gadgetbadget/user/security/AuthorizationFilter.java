@@ -11,11 +11,10 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 
-import org.jose4j.base64url.Base64;
+import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.lang.JoseException;
 
-import com.gadgetbadget.user.util.JWTHandler;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.sun.jersey.api.core.ResourceContext;
 import com.sun.jersey.spi.container.ContainerRequest;
@@ -36,10 +35,17 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 		ResponseBuilder builder = null;
 		boolean isValidToken = false;
 
-		//Grant Access if Authentication is Requested.
+		//Check URI
 		String[] URISegments = request.getPath().split("/");
 		if(URISegments.length>1) {
-			if((URISegments[0]+"/"+URISegments[1]).equals("security/authenticate")) {
+
+			//Grant Access if Authentication is Requested.
+			if(request.getPath().equals("security/authenticate")) {//(URISegments[0]+"/"+URISegments[1]).equals("security/authenticate")) {
+				return request;
+			}
+
+			//Grant Access if New User Account is Requested.
+			if(request.getMethod().equals("POST") && (request.getPath().equals("users/consumers") || request.getPath().equals("users/funders") || request.getPath().equals("users/researchers") || request.getPath().equals("users/employees"))) {//(URISegments[0]+"/"+URISegments[1]).equals("users/consumers")) {
 				return request;
 			}
 		}
@@ -52,10 +58,9 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 			builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
 			throw new WebApplicationException(builder.build());
 		}
-
+		System.out.println(authHeader);
 		authToken = authHeader.get(0);
 		authToken = authToken.replaceFirst(AUTHORIZATION_HEADER_PREFIX, "");
-		//TEST: System.out.println(authToken);
 
 		if (authToken == null) {
 			String response = "Invalid Authorization Token Format.";
@@ -63,8 +68,14 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 			throw new WebApplicationException(builder.build());
 		}
 
+		System.out.println(authToken);
 		//Validate JWT
-		isValidToken = new JWTHandler().validateToken(authToken);
+		try {
+			isValidToken = new JWTHandler().validateToken(authToken);
+		} catch (JoseException | MalformedClaimException e) {
+			e.printStackTrace();
+		}
+
 		if(!isValidToken) {
 			String response = "Invalid Authorization Token Provided.";
 			builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
@@ -72,14 +83,12 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 		}
 
 		//Check in Local TokenBlackList
-		//Not implemented yet
+		//Token Blacklist is Not implemented
+		//Tokens only get invalidated after they are expired
 
 		try {
 			//Get JWT PAYLOAD Data
-			String[] tokenSplitted = authToken.split("\\.");
-			String tokenDecoded = new String(Base64.decode(tokenSplitted[1]));
-			JsonObject tokenPayload = new JsonParser().parse(tokenDecoded).getAsJsonObject();
-			//TEST: System.out.println(tokenPayload.toString());
+			JsonObject tokenPayload = new JWTHandler().decodeJWTPayload(authToken);
 
 			if (! (tokenPayload.has("username") && tokenPayload.has("user_id") && tokenPayload.has("role"))) {
 				String response = "Invalid Authorization Token Payload.";
@@ -102,7 +111,7 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 			//Release Request for Authorization at
 			//End-point, when Authentication is done
 			return request;
-			
+
 		} catch (JsonSyntaxException ex) {
 			String response = "Invalid Authorization Token Payload.";
 			builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);

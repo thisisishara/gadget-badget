@@ -17,6 +17,7 @@ public class JsonResponseBuilder {
 	}
 
 	public JsonObject getJsonResponse(String status, String message) {
+		jsonObject = new JsonObject();
 		jsonObject.addProperty("STATUS", status);
 		jsonObject.addProperty("MESSAGE", message);
 		return jsonObject;
