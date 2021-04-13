@@ -79,7 +79,7 @@ public class Payment extends DBHandler{
 				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
 				return result; 
 			}
-			
+
 			CallableStatement callableStmt = conn.prepareCall("{call sp_insert_payment(?, ?, ?, ?, ?, ?)}");
 
 			callableStmt.registerOutParameter(6, Types.INTEGER);
@@ -124,7 +124,7 @@ public class Payment extends DBHandler{
 				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
 				return result; 
 			}
-			
+
 			CallableStatement callableStmt = conn.prepareCall("{call sp_update_payment(?, ?, ?, ?, ?, ?, ?)}");
 
 			callableStmt.registerOutParameter(7, Types.INTEGER);
@@ -145,16 +145,60 @@ public class Payment extends DBHandler{
 
 			if(status > 0) {
 				result.addProperty("STATUS", "SUCCESSFUL");
-				result.addProperty("MESSAGE", "Payment amount Rs." + payment_amount +" of customer-"+consumer_id+ " Updated successfully.");
+				result.addProperty("MESSAGE", "Payment amount Rs." + payment_amount +" of ID-"+payment_id+ " Updated successfully.");
 			} else {
 				result.addProperty("STATUS", "UNSUCCESSFUL");
-				result.addProperty("MESSAGE", "Unable to update Payment amount Rs." + payment_amount +" of Customer: "+consumer_id);
+				result.addProperty("MESSAGE", "Unable to update Payment amount Rs." + payment_amount +" of ID: "+payment_id);
 			}
 		}
 		catch (Exception ex) {
 			result = new JsonObject();
 			result.addProperty("STATUS", "EXCEPTION");
-			result.addProperty("MESSAGE", "Error occurred while updating Payment amount Rs." + payment_amount  +" of customer-"+consumer_id+ ". Exception Details:" + ex.getMessage());
+			result.addProperty("MESSAGE", "Error occurred while updating Payment amount Rs." + payment_amount  +" of ID-"+payment_id+ ". Exception Details:" + ex.getMessage());
+			System.err.println(ex.getMessage());
+		}
+		return result;
+	}
+	//Delete Consumer
+	public JsonObject deletePayment(String payment_id) {
+		JsonObject result = null;
+		int status = 0;
+
+		try {
+			Connection conn = getConnection();
+			if (conn == null) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "ERROR");
+				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
+				return result; 
+			}
+
+			CallableStatement callableStmt = conn.prepareCall("{call sp_delete_payment(?, ?,?)}");
+
+			//output parameter registering
+			callableStmt.registerOutParameter(3, Types.INTEGER);
+
+			//Input parameter binding
+			callableStmt.setString(1, payment_id);
+
+			callableStmt.execute();
+
+			//test
+			status = (int) callableStmt.getInt(3);
+			result = new JsonObject();			
+
+			if(status > 0) {
+				result.addProperty("STATUS", "SUCCESSFUL");
+				result.addProperty("MESSAGE", "Payment " + payment_id + " deleted successfully.");
+			} else {
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("MESSAGE", "Unable to Delete Payment "+ payment_id +".");
+			}
+		}
+		catch (Exception ex) {
+			result = new JsonObject();
+			result.addProperty("STATUS", "EXCEPTION");
+			result.addProperty("MESSAGE", "Error occurred while deleting consumer. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
 		}
 		return result;

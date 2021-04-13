@@ -1,6 +1,7 @@
 package com.gadgetbadget.payment;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -72,12 +73,14 @@ public class PaymentService {
 			}
 
 			result = new JsonObject();
+			
 			if(insertCount == elemCount) {
 				result.addProperty("STATUS", "SUCCESSFUL");
 				result.addProperty("MESSAGE", insertCount + " Payment were Made successfully.");
+				
 			} else {
 				result.addProperty("STATUS", "UNSUCCESSFUL");
-				result.addProperty("MESSAGE", "Only " + insertCount +" Payment were Made. Making failed for "+ (elemCount-insertCount) + " Payments.");
+				result.addProperty("MESSAGE", "Only " + insertCount +" Payment were Made. Making failed for "+ (elemCount-insertCount) + " Payment(s).");
 			}
 
 		} catch (Exception ex){
@@ -136,12 +139,14 @@ public class PaymentService {
 			}
 
 			result = new JsonObject();
+			
 			if(updateCount == elemCount) {
 				result.addProperty("STATUS", "SUCCESSFUL");
 				result.addProperty("MESSAGE", updateCount + " Payments were updated successfully.");
+				
 			} else {
 				result.addProperty("STATUS", "UNSUCCESSFUL");
-				result.addProperty("MESSAGE", "Only " + updateCount +" Payments were Updated. Updating failed for "+ (elemCount-updateCount) + " Payments.");
+				result.addProperty("MESSAGE", "Only " + updateCount +" Payments were Updated. Updating failed for "+ (elemCount-updateCount) + " Payment(s).");
 			}
 
 		} catch (Exception ex){
@@ -152,4 +157,58 @@ public class PaymentService {
 
 		return result.toString();
 	}
+	
+	@DELETE
+	@Path("/")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String deletePayment(String paymentJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject paymentJSON_parsed = new JsonParser().parse(paymentJSON).getAsJsonObject();
+
+			if(!paymentJSON_parsed.has("payments")) {
+				return (payment.deletePayment(
+						paymentJSON_parsed.get("payment_id").getAsString())).toString();
+				
+			} else if (!paymentJSON_parsed.get("payments").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "ERROR");
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int deleteCount = 0;
+			int elemCount = paymentJSON_parsed.get("payments").getAsJsonArray().size();
+
+			for (JsonElement paymentElem : paymentJSON_parsed.get("payments").getAsJsonArray()) {
+				JsonObject paymentObj = paymentElem.getAsJsonObject();
+				JsonObject response = (payment.deletePayment(paymentObj.get("payment_id").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
+					deleteCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(deleteCount == elemCount) {
+				result.addProperty("STATUS", "SUCCESSFUL");
+				result.addProperty("MESSAGE", deleteCount + " Payment were deleted successfully.");
+			} else {
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("MESSAGE", "Only " + deleteCount +" Payment were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Payment(s).");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", "EXCEPTION");
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+
 }
