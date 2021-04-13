@@ -78,7 +78,7 @@ public class Payment extends DBHandler{
 				return result; 
 			}
 
-			String query = "INSERT INTO `payment`(`consumer_id`, `product_id`, `payment_amount`,) VALUES(?,?,?);";
+			String query = "INSERT INTO `payment`(`consumer_id`, `product_id`, `payment_amount`) VALUES(?,?,?);";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
 			preparedStmt.setString(1, consumer_id);
