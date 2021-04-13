@@ -10,6 +10,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.gadgetbadget.researchhub.model.Category;
+import com.gadgetbadget.researchhub.model.Researchproject;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -17,6 +18,7 @@ import com.google.gson.JsonParser;
 @Path("/research-projects")
 public class ResearchprojectService {
 	Category category = new Category();
+	Researchproject project = new Researchproject();
 	
 	 // Categories related End-points.
 		@GET
@@ -182,6 +184,18 @@ public class ResearchprojectService {
 			}
 
 			return result.toString();
+		}
+		
+		
+		
+		
+		// Projects related End-points.
+		@GET
+		@Path("/projects")
+		@Produces(MediaType.APPLICATION_JSON)
+		public String readProject()
+		{
+			return project.readProject().toString();
 		}
 		
 }
