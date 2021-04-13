@@ -3,6 +3,7 @@ package com.gadgetbadget.payment;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -15,7 +16,7 @@ import com.google.gson.JsonParser;
 @Path("/payments")
 public class PaymentService {
 	Payment payment = new Payment();
-	
+
 	//Payment End-points
 	@GET
 	@Path("/")
@@ -24,7 +25,7 @@ public class PaymentService {
 		return payment.readPayment().toString();
 	}
 
-	
+
 	@POST
 	@Path("/")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -41,7 +42,10 @@ public class PaymentService {
 				return (payment.insertPayment(
 						paymentJSON_parsed.get("consumer_id").getAsString(), 
 						paymentJSON_parsed.get("product_id").getAsString(), 
-						paymentJSON_parsed.get("payment_amount").getAsFloat()).toString());
+						paymentJSON_parsed.get("payment_amount").getAsFloat(), 
+						paymentJSON_parsed.get("creditcard_no").getAsString(), 
+						paymentJSON_parsed.get("card_type").getAsString()).toString());
+				
 			} else if (!paymentJSON_parsed.get("payments").isJsonArray()) {
 				result = new JsonObject();
 				result.addProperty("STATUS", "ERROR");
@@ -57,8 +61,10 @@ public class PaymentService {
 				JsonObject response = (payment.insertPayment(
 						paymentObj.get("consumer_id").getAsString(), 
 						paymentObj.get("product_id").getAsString(), 
-						paymentObj.get("payment_amount").getAsFloat()));
-						
+						paymentObj.get("payment_amount").getAsFloat(),
+						paymentObj.get("creditcard_no").getAsString(), 
+						paymentObj.get("card_type").getAsString()));
+
 
 				if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
 					insertCount++;
@@ -83,5 +89,67 @@ public class PaymentService {
 		return result.toString();
 	}
 
+	@PUT
+	@Path("/")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String updatePayment(String paymentJSON)
+	{
+		JsonObject result = null;
 
+		try {
+
+			JsonObject paymentJSON_parsed = new JsonParser().parse(paymentJSON).getAsJsonObject();
+
+			if(!paymentJSON_parsed.has("payments")) {
+				return (payment.updatePayment(
+						paymentJSON_parsed.get("payment_id").getAsString(),
+						paymentJSON_parsed.get("consumer_id").getAsString(), 
+						paymentJSON_parsed.get("product_id").getAsString(), 
+						paymentJSON_parsed.get("payment_amount").getAsFloat(),
+						paymentJSON_parsed.get("creditcard_no").getAsString(),
+						paymentJSON_parsed.get("card_type").getAsString()).toString()); 
+						
+			} else if (!paymentJSON_parsed.get("payments").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "ERROR");
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int updateCount = 0;
+			int elemCount = paymentJSON_parsed.get("payments").getAsJsonArray().size();
+
+			for (JsonElement paymentElem : paymentJSON_parsed.get("payments").getAsJsonArray()) {
+				JsonObject paymentObj = paymentElem.getAsJsonObject();
+				JsonObject response = (payment.updatePayment(
+						paymentObj.get("payment_id").getAsString(),
+						paymentObj.get("consumer_id").getAsString(), 
+						paymentObj.get("product_id").getAsString(), 
+						paymentObj.get("payment_amount").getAsFloat(),
+						paymentObj.get("creditcard_no").getAsString(),
+						paymentObj.get("card_type").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
+					updateCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(updateCount == elemCount) {
+				result.addProperty("STATUS", "SUCCESSFUL");
+				result.addProperty("MESSAGE", updateCount + " Payments were updated successfully.");
+			} else {
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("MESSAGE", "Only " + updateCount +" Payments were Updated. Updating failed for "+ (elemCount-updateCount) + " Payments.");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", "EXCEPTION");
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
 }
