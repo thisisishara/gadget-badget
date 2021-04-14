@@ -2,6 +2,8 @@ package com.gadgetbadget.user;
 
 import javax.ws.rs.PathParam;
 
+import java.sql.SQLException;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -12,8 +14,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+
+import org.jose4j.lang.JoseException;
+
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.gadgetbadget.user.model.Consumer;
@@ -22,6 +26,8 @@ import com.gadgetbadget.user.model.Funder;
 import com.gadgetbadget.user.model.PaymentMethod;
 import com.gadgetbadget.user.model.Researcher;
 import com.gadgetbadget.user.model.User;
+import com.gadgetbadget.user.security.JWTHandler;
+import com.gadgetbadget.user.security.UserPrincipal;
 import com.gadgetbadget.user.util.DBOpStatus;
 import com.gadgetbadget.user.util.JsonResponseBuilder;
 import com.gadgetbadget.user.util.UserType;
@@ -42,16 +48,91 @@ public class UserResource {
 
 	ResponseBuilder builder = null;
 
-	//List of End-points for UserTypes
+
+	//List of Common End-points for All User Types
+	//Users End-points (User Accounts)
+	@GET
+	@Path("/")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String getUserStatistics(@Context SecurityContext securityContext) {
+
+		//Allow only UserType ADMIN
+		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+			return new JsonResponseBuilder().getJsonErrorResponse("You are not Authorized to Perform this action.").toString();
+		}
+
+		return user.getUserAccountStatistics().toString();
+	}
+
+	//Change Account State [Activate/Deactivate]
+	@POST
+	@Path("/{user_id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String changeUserAccountState(@Context SecurityContext securityContext, @PathParam("user_id") String uri_user_id, @QueryParam("deactivate") boolean isDeactivated)
+	{
+		try {
+			//Allow NON-ADMIN users to change only their password
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to perform this action.").toString();
+			}
+			//Disallow deactivating the SUPER ADMIN
+			if(uri_user_id.equals("AD21000001")) {
+				return new JsonResponseBuilder().getJsonErrorResponse("Deactivating the GLOBAL_ADMIN Account is disabled.").toString();
+			}
+
+			//Allow only UserType:ADMIN to Change state of any account
+			return user.changeUserAccountState(uri_user_id, isDeactivated? "Yes":"No").toString();
+
+		} catch (Exception ex){
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+		}
+	}
+
+	//Change Password
+	@POST
+	@Path("/{user_id}/password")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String changePassword(String passwordsJSON, @Context SecurityContext securityContext, @PathParam("user_id") String uri_user_id )
+	{
+		try {
+
+			String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
+			JsonObject passwordJSON_parsed = new JsonParser().parse(passwordsJSON).getAsJsonObject();
+
+			//Verify JsonObject Validity
+			if (! (passwordJSON_parsed.has("new_password") && passwordJSON_parsed.has("old_password"))) {
+				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
+			}
+
+			//Allow NON-ADMIN users to change only their password
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+				if (! uri_user_id.equals(current_user_id)){
+					return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to change passwords for users other than yourself.").toString();
+				}
+
+				//Change User's own password
+				return user.changePassword(uri_user_id,  passwordJSON_parsed.get("old_password").getAsString(), passwordJSON_parsed.get("new_password").getAsString()).toString();
+			}
+
+			//Allow only UserType ADMIN to Change any password
+			return user.changePassword(uri_user_id, passwordJSON_parsed.get("old_password").getAsString(), passwordJSON_parsed.get("new_password").getAsString()).toString();
+
+		} catch (Exception ex){
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+		}
+	}
+
+	//List of End-points for Specific UserTypes
 	//Employee End-points
 	@GET
 	@Path("/employees")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String readEmployees(@Context SecurityContext securityContext) {
-//		//Allow only UserType ADMIN
-//		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-//			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), "You are not Authorized to Perform this action.").toString();
-//		}
+		//Allow only UserType ADMIN
+		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+			return new JsonResponseBuilder().getJsonErrorResponse("You are not Authorized to Perform this action.").toString();
+		}
 		return employee.readEmployees().toString();
 	}
 
@@ -90,7 +171,7 @@ public class UserResource {
 
 			//Limit multiple inserts only for ADMINs
 			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-				return new JsonResponseBuilder().getJsonResponse(Response.Status.UNAUTHORIZED.toString().toUpperCase(), "You are not Authorized to Perform this action.").toString();
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to Perform this action.").toString();
 			}
 
 			result = new JsonObject();
@@ -247,7 +328,7 @@ public class UserResource {
 
 			//Limit multiple inserts only for ADMINs
 			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-				return new JsonResponseBuilder().getJsonResponse(Response.Status.UNAUTHORIZED.toString().toUpperCase(), "You are not Authorized to Perform this action.").toString();
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to Perform this action.").toString();
 			}
 
 			int insertCount = 0;
@@ -418,7 +499,7 @@ public class UserResource {
 
 			//Limit multiple inserts only for ADMINs
 			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-				return new JsonResponseBuilder().getJsonResponse(Response.Status.UNAUTHORIZED.toString().toUpperCase(), "You are not Authorized to Perform this action.").toString();
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to Perform this action.").toString();
 			}
 
 			int insertCount = 0;
@@ -590,9 +671,9 @@ public class UserResource {
 
 			//Limit multiple inserts only for ADMINs
 			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-				return new JsonResponseBuilder().getJsonResponse(Response.Status.UNAUTHORIZED.toString().toUpperCase(), "You are not Authorized to Perform this action.").toString();
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to Perform this action.").toString();
 			}
-			
+
 			int insertCount = 0;
 			int elemCount = researcherJSON_parsed.get("researchers").getAsJsonArray().size();
 
@@ -1596,20 +1677,5 @@ public class UserResource {
 		}
 		return result.toString();
 	}
-
-
-	/*
-	//Testing Inter-service communications with Payment Service
-	@GET
-	@Path("/Intercomms/")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String intercomms()
-	{
-		Client c = Client.create();
-		WebResource resource = c.resource("http://127.0.0.1:8080/PaymentService/PaymentService/Test/");
-		JsonObject output = resource.get(JsonObject.class);
-		return "Response of Payment Server: " + output;
-	}
-	 */
 }
 

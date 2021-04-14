@@ -5,5 +5,6 @@ public enum DBOpStatus {
 	SUCCESSFUL,
 	EXCEPTION,
 	ERROR,
+	UNAUTHORIZED,
 	UNKNOWN
 }

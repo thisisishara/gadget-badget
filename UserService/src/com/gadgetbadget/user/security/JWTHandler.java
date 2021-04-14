@@ -31,7 +31,8 @@ import com.google.gson.JsonParser;
 public class JWTHandler extends DBHandler {
 	private static String JWT_SUBJECT = "gadgetbadget.auth.";
 
-
+	//Generate JWT for User Authentication
+	//Expiration is set to 30 minutes
 	public String generateToken(String username, String user_id, String role) throws JoseException, SQLException {
 		String jwt = null;
 
@@ -93,8 +94,8 @@ public class JWTHandler extends DBHandler {
 
 		return jwt;
 	}
-
-
+	
+	//Validate JWT Token for User Authentication
 	public boolean validateToken(String jwt) throws MalformedClaimException, JoseException {
 		try
 		{
@@ -146,7 +147,7 @@ public class JWTHandler extends DBHandler {
 		}
 	}
 
-
+	//Save RSA Keys to Local DB
 	public boolean saveJWKToDB(RsaJsonWebKey rsa) {
 		boolean res = false;
 		try {
@@ -176,7 +177,7 @@ public class JWTHandler extends DBHandler {
 		return res;
 	}
 
-
+	//Retrieve RSA keys from Local DB
 	public JWK getJWKFromDB() {
 		JWK jwk = null;
 		try
@@ -226,5 +227,125 @@ public class JWTHandler extends DBHandler {
 		String jwtDecoded = new String(Base64.decode(jwtSplitted[1]));
 		JsonObject jwtPayload = new JsonParser().parse(jwtDecoded).getAsJsonObject();
 		return jwtPayload;
+	}
+	
+
+	//SERVICE Token Verification
+	//Expiration is not set
+	public String generateServiceToken(String service_name, String service_id, String service_role) throws JoseException, SQLException {
+		String jwt = null;
+
+		JWT_SUBJECT += service_name;
+		JWK jwk = getJWKFromDB();
+
+		RsaJsonWebKey rsaJsonWebKey = RsaJwkGenerator.generateJwk(2048);
+		rsaJsonWebKey.setKeyId("JWK1");
+
+		//Generate the JWT Header
+		JwtClaims claims = new JwtClaims();
+		claims.setIssuer(jwk.getIssuer());  // who creates the token and signs it
+		claims.setAudience(jwk.getAudience()); // to whom the token is intended to be sent
+		claims.setGeneratedJwtId(); // a unique identifier for the token
+		claims.setIssuedAtToNow();  // when the token was issued/created (now)
+		claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
+		claims.setSubject(JWT_SUBJECT); // the subject/principal is whom the token is about
+
+		//Generate the JWT PAYLOAD
+		claims.setClaim("username",service_name); // additional claims/attributes about the subject can be added
+		claims.setClaim("user_id",service_id);
+		claims.setClaim("role",service_role);
+
+		// A JWT is a JWS and/or a JWE with JSON claims as the PAYLOAD.
+		// In this example it is a JWS so we create a JsonWebSignature object.
+		JsonWebSignature jws = new JsonWebSignature();
+
+		// The PAYLOAD of the JWS is JSON content of the JWT Claims
+		jws.setPayload(claims.toJson());
+
+		// The JWT is signed using the private key
+		jws.setKey(jwk.getPrivate_key());
+
+		// Set the Key ID (kid) header because it's just the polite thing to do.
+		// We only have one key in this example but a using a Key ID helps
+		// facilitate a smooth key roll-over process
+		jws.setKeyIdHeaderValue(jwk.getKey_id());
+
+		// Set the signature algorithm on the JWT/JWS that will integrity protect the claims
+		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+
+		// Sign the JWS and produce the compact serialization or the complete JWT/JWS
+		// representation, which is a string consisting of three dot ('.') separated
+		// base64url-encoded parts in the form Header.Payload.Signature
+		// If you wanted to encrypt it, you can simply set this JWT as the PAYLOAD
+		// of a JsonWebEncryption object and set the CTY (Content Type) header to "JWT".
+		jwt = jws.getCompactSerialization();
+
+
+		// Now you can do something with the JWT. Like send it to some other party
+		// over the clouds and through the interwebs.
+//		System.out.println("Private Key B64: " + Base64.encode(rsaJsonWebKey.getPrivateKey().getEncoded())+"\nPublic Key B64: " + Base64.encode(rsaJsonWebKey.getPublicKey().getEncoded())+ "\nJWToken: " + jwt);
+//		System.out.println("Private Key Encoded: " + rsaJsonWebKey.getPrivateKey().getEncoded()+"\nPublic Key Encoded: " + rsaJsonWebKey.getPublicKey().getEncoded());
+//		System.out.println("Private Key RAW: " + rsaJsonWebKey.getPrivateKey()+"\nPublic Key RAW: " + rsaJsonWebKey.getPublicKey());
+
+		//validateToken(jwt, Base64.encode(rsaJsonWebKey.getPrivateKey().getEncoded()), Base64.encode(rsaJsonWebKey.getPublicKey().getEncoded()));
+//		System.out.println("isGenerated and saved: " + saveToDB(rsaJsonWebKey));
+		try {
+			validateServiceToken(jwt);
+		} catch (MalformedClaimException | JoseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return jwt;
+	}
+	
+	
+	public boolean validateServiceToken(String jwt) throws MalformedClaimException, JoseException {
+		try
+		{
+			JWK jwk = getJWKFromDB();
+
+			JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+					.setAllowedClockSkewInSeconds(2000000000) // allow some leeway in validating time based claims to account for clock skew
+					.setRequireSubject() // the JWT must have a subject claim
+					.setExpectedIssuer(jwk.getIssuer()) // whom the JWT needs to have been issued by
+					.setExpectedAudience(jwk.getAudience()) // to whom the JWT is intended for
+					.setVerificationKey(jwk.getPublic_key()) // verify the signature with the public key
+					.setJwsAlgorithmConstraints( // only allow the expected signature algorithm(s) in the given context
+							ConstraintType.PERMIT, AlgorithmIdentifiers.RSA_USING_SHA256) // which is only RS256 here
+					.build(); // create the JwtConsumer instance
+
+
+			//  Validate the JWT and process it to the Claims
+			JwtClaims jwtClaims = jwtConsumer.processToClaims(jwt);
+			System.out.println("JWT validation succeeded! " + jwtClaims);
+			return true;
+		}
+		catch (InvalidJwtException ex)
+		{
+			// InvalidJwtException will be thrown, if the JWT failed processing or validation in anyway.
+			// Hopefully with meaningful explanations(s) about what went wrong.
+			System.out.println("Invalid JWT! " + ex);
+
+			// Programmatic access to (some) specific reasons for JWT invalidity is also possible
+			// should you want different error handling behavior for certain conditions.
+
+			// Whether or not the JWT has expired being one common reason for invalidity
+			if (ex.hasExpired())
+			{
+				System.out.println("JWT expired at " + ex.getJwtContext().getJwtClaims().getExpirationTime());
+			}
+
+			// Or maybe the audience was invalid
+			if (ex.hasErrorCode(ErrorCodes.AUDIENCE_INVALID))
+			{
+				System.out.println("JWT had wrong audience: " + ex.getJwtContext().getJwtClaims().getAudience());
+			}
+
+			return false;
+		}
+		catch (Exception ex) {
+			System.out.println("Invalid JWT?? " + ex);
+			return false;
+		}
 	}
 }

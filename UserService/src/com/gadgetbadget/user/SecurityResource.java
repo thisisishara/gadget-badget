@@ -25,6 +25,8 @@ import com.google.gson.JsonParser;
 public class SecurityResource {
 	Role role = new Role();
 	User user = new User();
+	
+	private static final String AUTH_STATUS = "AUTHENTICATED";
 
 	//Authentication End-point
 	@POST
@@ -39,26 +41,31 @@ public class SecurityResource {
 
 			//check if multiple inserts
 			if(! (authJSON_parsed.has("username") && authJSON_parsed.has("password"))) {
-				return new JsonResponseBuilder().getJsonResponse( DBOpStatus.ERROR.toString(), "Invalid JSON Object.").toString();
+				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
 			
 			result = user.getUserById(authJSON_parsed.get("username").getAsString(), authJSON_parsed.get("password").getAsString());
 			
-			if (result==null || !result.has("username") || !result.has("password")) {
-				return new JsonResponseBuilder().getJsonResponse( DBOpStatus.ERROR.toString(), "User not found.").toString();
+			if (result==null || !result.has("username")) {
+				return new JsonResponseBuilder().getJsonErrorResponse("Invalid Credentials.").toString();
+			}
+			
+			if (result.get("is_deactivated").getAsString().equalsIgnoreCase("yes")) {
+				return new JsonResponseBuilder().getJsonErrorResponse("User account has been deactivated.").toString();
 			}
 			
 			String jwt = new JWTHandler().generateToken(result.get("username").getAsString(), result.get("user_id").getAsString(), result.get("role").getAsString());
 			
 			if (! (jwt==null || new JWTHandler().validateToken(jwt))) {
-				return new JsonResponseBuilder().getJsonResponse( DBOpStatus.ERROR.toString(), "Failed to Issue a JWT Authentication Token.").toString();
+				return new JsonResponseBuilder().getJsonErrorResponse("Failed to Issue a JWT Authentication Token.").toString();
 			}
 			
 			result = new JsonObject();
+			result.addProperty("STATUS", AUTH_STATUS);
 			result.addProperty("JWT Auth Token", jwt);
 
 		} catch (Exception ex){
-			result = new JsonResponseBuilder().getJsonResponse(DBOpStatus.EXCEPTION.toString(), "Exception Details: " + ex.getMessage());
+			result = new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage());
 		}
 
 		return result.toString();
@@ -73,7 +80,7 @@ public class SecurityResource {
 	{
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), "You are not Authorized to Perform this action.").toString();
+			return new JsonResponseBuilder().getJsonErrorResponse("You are not Authorized to Perform this action.").toString();
 		}
 
 		return role.readRoles().toString();
@@ -90,7 +97,7 @@ public class SecurityResource {
 
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), "You are not Authorized to Perform this action.").toString();
+			return new JsonResponseBuilder().getJsonErrorResponse("You are not Authorized to Perform this action.").toString();
 		}
 
 		try {
@@ -147,7 +154,7 @@ public class SecurityResource {
 
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), "You are not Authorized to Perform this action.").toString();
+			return new JsonResponseBuilder().getJsonErrorResponse("You are not Authorized to Perform this action.").toString();
 		}
 
 		try {
@@ -204,7 +211,7 @@ public class SecurityResource {
 
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonResponse(DBOpStatus.ERROR.toString(), "You are not Authorized to Perform this action.").toString();
+			return new JsonResponseBuilder().getJsonErrorResponse("You are not Authorized to Perform this action.").toString();
 		}
 
 		try {
