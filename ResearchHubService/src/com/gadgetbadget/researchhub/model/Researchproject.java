@@ -111,7 +111,7 @@ public class Researchproject extends DBHandler {
 		}
 
 		//Update Research Projects
-		public JsonObject updateProject(String project_id, String researcher_id,String product_name, String project_description,String project_start_date,String project_end_date,String expected_total_budget)
+		public JsonObject updateProject(String project_id, String researcher_id,String product_name, String project_description,String category_id,String project_start_date,String project_end_date,String expected_total_budget)
 		{
 			JsonObject result = null;
 			try {
@@ -123,16 +123,17 @@ public class Researchproject extends DBHandler {
 					return result; 
 				}
 
-				String query = "UPDATE `researchproject` SET `researcher_id`=?,`product_name`=?,`project_description`=?,`project_start_date`=?,`project_end_date`=?, `expected_total_budget`=? WHERE `project_id`=?;";
+				String query = "UPDATE `researchproject` SET `researcher_id`=?,`product_name`=?,`project_description`=?,`category_id`=?,`project_start_date`=?,`project_end_date`=?, `expected_total_budget`=? WHERE `project_id`=?;";
 				PreparedStatement preparedStmt = conn.prepareStatement(query);
 
 				preparedStmt.setString(1, researcher_id);
 				preparedStmt.setString(2, product_name);
 				preparedStmt.setString(3, project_description);
-				preparedStmt.setString(4, project_start_date);
-				preparedStmt.setString(5, project_end_date);
-				preparedStmt.setString(6, expected_total_budget);
-				preparedStmt.setString(7, project_id);
+				preparedStmt.setString(4, category_id);
+				preparedStmt.setString(5, project_start_date);
+				preparedStmt.setString(6, project_end_date);
+				preparedStmt.setString(7, expected_total_budget);
+				preparedStmt.setString(8, project_id);
 
 				int status = preparedStmt.executeUpdate();
 				conn.close();
