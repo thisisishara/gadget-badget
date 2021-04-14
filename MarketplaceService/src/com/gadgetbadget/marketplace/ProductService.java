@@ -30,7 +30,7 @@ public class ProductService {
 	@Path("/product-categories")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertCategory(String productCategoryJSON)
+	public String insertProductCategory(String productCategoryJSON)
 	{
 		JsonObject result = null;
 
