@@ -52,12 +52,12 @@ public class ProductService {
 			int elemCount = productCategoryJSON_parsed.get("product-categories").getAsJsonArray().size();
 
 			for (JsonElement productCategoryElem : productCategoryJSON_parsed.get("product-categories").getAsJsonArray()) {
-				JsonObject productCategoryObj = productCategoryElem.getAsJsonObject();
-				JsonObject response = (productCategory.insertProductCategory(productCategoryObj.get("category_name").getAsString(),productCategoryObj.get("category_description").getAsString(), productCategoryObj.get("last_modified_by").getAsString()));
+					JsonObject productCategoryObj = productCategoryElem.getAsJsonObject();
+					JsonObject response = (productCategory.insertProductCategory(productCategoryObj.get("category_name").getAsString(),productCategoryObj.get("category_description").getAsString(), productCategoryObj.get("last_modified_by").getAsString()));
 
-				if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
-					insertCount++;
-				}
+					if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
+						insertCount++;
+					}
 			}
 
 			result = new JsonObject();
