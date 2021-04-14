@@ -25,9 +25,10 @@ public class Researchproject extends DBHandler {
 			String query = "INSERT INTO `researchproject`(`researcher_id`,`product_name`,`project_description`,`category_id`,`project_start_date`,`project_end_date`,`expected_total_budget`) VALUES(?,?,?,?,?,?,?);";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
-			preparedStmt.setString(1, researcher_id);
+			
+			preparedStmt.setString(1,researcher_id);
 			preparedStmt.setString(2, product_name);
-			preparedStmt.setString(3, project_description);
+			preparedStmt.setString(3,project_description);
 			preparedStmt.setString(4, category_id);
 			preparedStmt.setString(5, project_start_date);
 			preparedStmt.setString(6, project_end_date);
