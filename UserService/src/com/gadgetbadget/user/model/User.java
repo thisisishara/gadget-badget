@@ -4,17 +4,20 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import com.gadgetbadget.user.util.DBHandler;
+import com.gadgetbadget.user.util.InterServiceCommHandler;
 import com.gadgetbadget.user.util.JsonResponseBuilder;
+import com.gadgetbadget.user.util.UserType;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class User extends DBHandler{
-	
+
 	//Read User by ID (without considering a specific user type)
 	//for authenticating purposes
 	public JsonObject getUserById(String username, String password) {
 		JsonObject result = null;
-		
+
 		try
 		{
 			Connection conn = getConnection();
@@ -24,7 +27,7 @@ public class User extends DBHandler{
 
 			String query = "SELECT u.`user_id`, u.`role_id`, u.`is_deactivated` FROM `user` u WHERE u.`username` = ? AND u.`password`=?;";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
-			
+
 			preparedStmt.setString(1, username);
 			preparedStmt.setString(2, password);
 			ResultSet rs = preparedStmt.executeQuery();
@@ -40,7 +43,7 @@ public class User extends DBHandler{
 				recordObject.addProperty("role", rs.getString("role_id"));
 				recordObject.addProperty("username", username);
 				recordObject.addProperty("is_deactivated", rs.getString("is_deactivated"));
-				
+
 				result = recordObject;
 			}
 			conn.close();
@@ -52,13 +55,13 @@ public class User extends DBHandler{
 		}
 		return result;
 	}
-	
-	
+
+
 	//Read All User Account Statistics
 	public JsonObject getUserAccountStatistics() {
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();
-		
+
 		try
 		{
 			Connection conn = getConnection();
@@ -68,7 +71,7 @@ public class User extends DBHandler{
 
 			String query = "SELECT `user_id`, `username`, `role_id`, `is_deactivated`, `first_name`, `last_name`, `gender`, `primary_email`, `primary_phone` FROM `user`;";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
-			
+
 			ResultSet rs = preparedStmt.executeQuery();
 
 			if(!rs.isBeforeFirst()) {
@@ -88,19 +91,43 @@ public class User extends DBHandler{
 				recordObject.addProperty("primary_email", rs.getString("primary_email"));
 				recordObject.addProperty("primary_phone", rs.getString("primary_phone"));
 				resultArray.add(recordObject);
-				
+
 			}
 			conn.close();
-			
+
 			result = new JsonObject();
 			result.add("user-stats", resultArray);
 			//get payment info
-			
+
 			//obtain statistics through service-to-service communication
-			//payments
-			//researches
-			//products
-			//funds
+			//payments-consumer
+			for(JsonElement jsonElem : result.get("user-stats").getAsJsonArray()) {
+				String user_id = jsonElem.getAsJsonObject().get("user_id").getAsString();
+				String role_id = jsonElem.getAsJsonObject().get("role").getAsString();
+
+				if(role_id.equalsIgnoreCase(UserType.CNSMR.toString())){
+					JsonObject interRes = new InterServiceCommHandler().paymentIntercomms("payments?consumerid=" + user_id + "&summarized=true");
+					if(interRes.entrySet().size() >2) {
+						jsonElem.getAsJsonObject().add("payment-stats", interRes);
+					} else {
+						jsonElem.getAsJsonObject().addProperty("payment-stats", "NOT FOUND");
+					}
+				}
+			}
+			//payments-researcher
+			
+			//researchHub-researcher
+			
+			//researchHub-funder
+			
+			//products-consumer
+			
+			//products-researcher
+			
+			//funds-funder
+			
+			//funds-researcher
+			
 		}
 		catch (Exception ex)
 		{
@@ -109,19 +136,19 @@ public class User extends DBHandler{
 		}
 		return result;
 	}
-	
-	
+
+
 	//Activate or Deactivate UserAccount
 	public JsonObject changeUserAccountState(String user_id, String state) {
 		JsonObject result = null;
 		String operation = null;
-		
+
 		if(state.equalsIgnoreCase("Yes")) {
 			operation = "Deactivate";
 		} else if (state.equalsIgnoreCase("No")) {
 			operation = "Activate";
 		}
-		
+
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
@@ -151,13 +178,13 @@ public class User extends DBHandler{
 		}
 		return result;
 	}
-	
-	
+
+
 	//Change Password
 	public JsonObject changePassword(String user_id, String oldPassword, String newPassword) {
 		JsonObject result = null;
 		try {			
-			
+
 			Connection conn = getConnection();
 			if (conn == null) {
 				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue."); 
@@ -166,21 +193,21 @@ public class User extends DBHandler{
 			//Check if the user is valid
 			String queryRtr = "SELECT u.`user_id` FROM `user` u WHERE u.`user_id` = ? AND u.`password`=?;";
 			PreparedStatement preparedStmtRtr = conn.prepareStatement(queryRtr);
-			
+
 			preparedStmtRtr.setString(1, user_id);
 			preparedStmtRtr.setString(2, oldPassword);
 			ResultSet rs = preparedStmtRtr.executeQuery();
-			
+
 			int retrCount = 0;
 			while(rs.next()) {
 				retrCount++;
 				System.out.println(retrCount);
 			}
-			
+
 			if(!(retrCount>0)) {
 				return new JsonResponseBuilder().getJsonErrorResponse("Failed to validate the existing password. Password changing failed.");
 			}
-			
+
 			String queryUpd = "UPDATE `user` SET `password`=? WHERE `user_id`=?;";
 			PreparedStatement preparedStmtUpd = conn.prepareStatement(queryUpd);
 
@@ -204,5 +231,5 @@ public class User extends DBHandler{
 		}
 		return result;
 	}
-	
+
 }

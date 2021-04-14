@@ -3,6 +3,14 @@ package com.gadgetbadget.user.security;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+/*
+ * The class JWK is distributed among all the services as a part of the authentication 
+ * process implemented by the USER SERVICE. JWK represents the JSON Web Key and used to
+ * save and retrieve JWK data to and from the Local Database in each Web Service. JWK
+ * data is configured beforehand manually. 
+ * 
+ * @author IsharaDissanayake
+ */
 public class JWK {
 	private String key_id;
 	private PrivateKey private_key;
