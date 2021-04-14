@@ -14,7 +14,7 @@ import com.google.gson.JsonObject;
 public class Product_Category extends DBHandler{
 
 	//insert product category
-	public JsonObject insertProductCategory(String catName, String catDesc,  String lastModified) {
+	public JsonObject insertProductCategory(String category_name, String category_description,  String last_modified_by) {
 		 
 		JsonObject result = null;
 		
@@ -35,9 +35,9 @@ public class Product_Category extends DBHandler{
 			
 			
 			// binding values 
-			preparedStmt.setString(1, catName); 
-			preparedStmt.setString(2, catDesc); 
-			preparedStmt.setString(3, lastModified);
+			preparedStmt.setString(1, category_name); 
+			preparedStmt.setString(2, category_description); 
+			preparedStmt.setString(3, last_modified_by);
 
 			//execute the statement
 			int status = preparedStmt.executeUpdate();
