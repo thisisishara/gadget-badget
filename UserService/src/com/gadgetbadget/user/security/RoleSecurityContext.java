@@ -5,6 +5,13 @@ import java.util.Set;
 
 import javax.ws.rs.core.SecurityContext;
 
+/**
+ * This class is used to Inject new user data which were obtained from the JWT PAYLOAD
+ * to the security context and the user/service principal of the request after authentication
+ * process is succeeded. Plays a major role in user/service authorization at end-points.
+ * 
+ * @author Ishara_Dissanayake
+ */
 public class RoleSecurityContext implements SecurityContext{
 
 	private Set<String> roles;

@@ -6,24 +6,26 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Types;
 
-import com.gadgetbadget.user.util.DBOpStatus;
+import com.gadgetbadget.user.util.JsonResponseBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+/**
+ * This class represents employees and is a type of users. Performs 
+ * database operations related to employees, thus Extends the DBHandler.
+ * 
+ * @author Ishara_Dissanayake
+ */
 public class Employee extends User{
 
 	//Insert Employee
 	public JsonObject insertEmployee(String username, String password, String role_id, String first_name, String last_name, String gender, String primary_email, String primary_phone, String gb_employee_id, String department, String date_hired) {
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_insert_employee(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
@@ -44,24 +46,18 @@ public class Employee extends User{
 
 			callableStmt.execute();
 
-			status = (int) callableStmt.getInt(12);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(12);		
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Employee Inserted successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Employee Inserted successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Insert Employee.");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Insert Employee.");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while inserting Employee. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while inserting Employee. Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 	//Read Employees
@@ -72,10 +68,7 @@ public class Employee extends User{
 		{
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			String query = "SELECT u.user_id, u.first_name, u.last_name, u.gender, u.primary_email, u.primary_phone, e.gb_employee_id, u.role_id, e.department, e.date_hired FROM `user` u, `employee` e WHERE u.user_id=e.employee_id";
@@ -83,10 +76,7 @@ public class Employee extends User{
 			ResultSet rs = stmt.executeQuery(query);
 
 			if(!rs.isBeforeFirst()) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE","Request Processed. No employees found.");
-				return result;
+				return new JsonResponseBuilder().getJsonSuccessResponse("Request Processed. No employees found.");
 			}
 
 			while (rs.next())
@@ -112,10 +102,8 @@ public class Employee extends User{
 		}
 		catch (Exception ex)
 		{
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while reading employees. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while reading employees. Exception Details:" + ex.getMessage());
 		}
 		return result;
 	}
@@ -124,16 +112,12 @@ public class Employee extends User{
 	//Update Employee
 	public JsonObject updateEmployee(String user_id,String username, String password, String first_name, String last_name, String gender, String primary_email, String primary_phone, String gb_employee_id, String department, String date_hired)
 	{
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_update_employee(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
@@ -154,39 +138,29 @@ public class Employee extends User{
 
 			callableStmt.execute();
 
-			status = (int) callableStmt.getInt(12);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(12);		
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Employee " + user_id + " Updated successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Employee " + user_id + " Updated successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Update Employee " + user_id +".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Update Employee " + user_id +".");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while updating Employee " + user_id +". Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while updating Employee " + user_id +". Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 
 	//Delete Employee
 	public JsonObject deleteEmployee(String user_id) {
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue."); 
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_delete_employee(?, ?)}");
@@ -197,23 +171,17 @@ public class Employee extends User{
 
 			callableStmt.execute();
 
-			status = (int) callableStmt.getInt(2);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(2);		
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Employee " + user_id + " deleted successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Employee " + user_id + " deleted successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Delete Employee "+ user_id +".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Delete Employee "+ user_id +".");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while deleting Employee. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while deleting Employee. Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 }

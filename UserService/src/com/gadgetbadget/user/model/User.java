@@ -11,10 +11,22 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class User extends DBHandler{
+/**
+ * This class represents users as a whole and contains user account related methods and database
+ * operations that are common to all users. Extends the DBHandler.
+ * 
+ * @author Ishara_Dissanayake
+ */
+public class User extends DBHandler {
 
-	//Read User by ID (without considering a specific user type)
-	//for authenticating purposes
+	/**
+	 * This method reads user by ID (without considering a specific user type) 
+	 * for authenticating purposes
+	 * 
+	 * @param username	user-name consumed at the end-point
+	 * @param password	password consumed at the end-point
+	 * @return			returns a JSON object containing the user details or an JSON status response
+	 */
 	public JsonObject getUserById(String username, String password) {
 		JsonObject result = null;
 
@@ -56,8 +68,13 @@ public class User extends DBHandler{
 		return result;
 	}
 
-
-	//Read All User Account Statistics
+	/**
+	 * This method reads all User Account Statistics with the help of InterServiceCommHandler class
+	 * in order to create a summarized version of user statistics.
+	 * 
+	 * @return	a JSON object which has the user account details and statistics obtained by other services as JSON
+	 * 			objects within the wrapper JSON object.
+	 */
 	public JsonObject getUserAccountStatistics() {
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();
@@ -137,8 +154,15 @@ public class User extends DBHandler{
 		return result;
 	}
 
-
-	//Activate or Deactivate UserAccount
+	/**
+	 * This method activates or deactivates UserAccounts with give user_id
+	 * A deactivated user account cannot authenticate and obtain a JWT until
+	 * it is re-activated.
+	 * 
+	 * @param user_id	user id consumed at the end-point
+	 * @param state		new state of the user account that is about to get updated in the local database
+	 * @return			returns a JSON response based on the database operation performed
+	 */
 	public JsonObject changeUserAccountState(String user_id, String state) {
 		JsonObject result = null;
 		String operation = null;
@@ -179,8 +203,17 @@ public class User extends DBHandler{
 		return result;
 	}
 
-
-	//Change Password
+	/**
+	 * This method is used to change Password of an already authenticated user.
+	 * That means that, to change the password the user must be either an administrator 
+	 * or an already logged in user. A non administrator user cannot change passwords 
+	 * except his own.
+	 * 
+	 * @param user_id		user id of the logged in user
+	 * @param oldPassword	previous password that is already saved in the database
+	 * @param newPassword	new password that is yet to be updated in the database
+	 * @return				returns a JSON response based on the result of the database operation/ password validation
+	 */
 	public JsonObject changePassword(String user_id, String oldPassword, String newPassword) {
 		JsonObject result = null;
 		try {			
@@ -190,7 +223,7 @@ public class User extends DBHandler{
 				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue."); 
 			}
 
-			//Check if the user is valid
+			// check if the user is valid by retrieving the user using the old password given
 			String queryRtr = "SELECT u.`user_id` FROM `user` u WHERE u.`user_id` = ? AND u.`password`=?;";
 			PreparedStatement preparedStmtRtr = conn.prepareStatement(queryRtr);
 

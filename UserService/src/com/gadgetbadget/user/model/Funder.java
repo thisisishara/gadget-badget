@@ -6,23 +6,25 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Types;
 
-import com.gadgetbadget.user.util.DBOpStatus;
+import com.gadgetbadget.user.util.JsonResponseBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+/**
+ * This class represents funders and is a type of users. Performs 
+ * database operations related to funders, thus Extends the DBHandler.
+ * 
+ * @author Ishara_Dissanayake
+ */
 public class Funder  extends User{
 	//Insert Funder
 	public JsonObject insertFunder(String username, String password, String role_id, String first_name, String last_name, String gender, String primary_email, String primary_phone, String organization) {
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_insert_funder(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
@@ -41,24 +43,17 @@ public class Funder  extends User{
 
 			callableStmt.execute();
 
-			status = (int) callableStmt.getInt(10);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(10);	
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Funder Inserted successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Funder Inserted successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Insert Funder.");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Insert Funder.");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while inserting Funder. Exception Details:" + ex.getMessage());
-			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while inserting Funder. Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 	//Read Funders
@@ -69,10 +64,7 @@ public class Funder  extends User{
 		{
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			String query = "SELECT u.user_id, u.role_id, u.first_name, u.last_name, u.gender, u.primary_email, u.primary_phone, f.organization FROM `user` u, `funder` f WHERE u.user_id=f.funder_id;";
@@ -80,10 +72,7 @@ public class Funder  extends User{
 			ResultSet rs = stmt.executeQuery(query);
 
 			if(!rs.isBeforeFirst()) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE","Request Processed. No Funders found.");
-				return result;
+				return new JsonResponseBuilder().getJsonSuccessResponse("Request Processed. No Funders found.");
 			}
 
 			while (rs.next())
@@ -106,10 +95,7 @@ public class Funder  extends User{
 		}
 		catch (Exception ex)
 		{
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while reading funders. Exception Details:" + ex.getMessage());
-			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while reading funders. Exception Details:" + ex.getMessage());
 		}
 		return result;
 	}
@@ -117,16 +103,12 @@ public class Funder  extends User{
 	//Update Funder
 	public JsonObject updateFunder(String user_id,String username, String password, String first_name, String last_name, String gender, String primary_email, String primary_phone, String organization)
 	{
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_update_funder(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
@@ -148,38 +130,27 @@ public class Funder  extends User{
 			callableStmt.execute();
 
 			//test
-			status = (int) callableStmt.getInt(10);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(10);		
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Funder " + user_id + " Updated successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Funder " + user_id + " Updated successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Update Funder " + user_id +".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Update Funder " + user_id +".");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while updating Funder " + user_id +". Exception Details:" + ex.getMessage());
-			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while updating Funder " + user_id +". Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 	//Delete Funder
 	public JsonObject deleteFunder(String user_id) {
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue."); 
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_delete_funder(?, ?)}");
@@ -193,23 +164,17 @@ public class Funder  extends User{
 			callableStmt.execute();
 
 			//test
-			status = (int) callableStmt.getInt(2);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(2);	
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Funder " + user_id + " deleted successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Funder " + user_id + " deleted successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Delete Funder "+ user_id +".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Delete Funder "+ user_id +".");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while deleting Funder. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while deleting Funder. Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 }

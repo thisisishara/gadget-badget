@@ -21,14 +21,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+/**
+ * This Resource class represents account security related end-points
+ * Usually only ADMINs can access end-points implemented within this class.
+ * 
+ * @author Ishara_Dissanayake
+ */
 @Path("/security")
 public class SecurityResource {
 	Role role = new Role();
 	User user = new User();
-	
-	private static final String AUTH_STATUS = "AUTHENTICATED";
 
-	//Authentication End-point
+	// Authentication End-point
 	@POST
 	@Path("/authenticate")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -39,11 +43,12 @@ public class SecurityResource {
 
 			JsonObject authJSON_parsed = new JsonParser().parse(authJSON).getAsJsonObject();
 
-			//check if multiple inserts
+			// Check JSON elements
 			if(! (authJSON_parsed.has("username") && authJSON_parsed.has("password"))) {
 				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
 			
+			// Retrieve corresponding user
 			result = user.getUserById(authJSON_parsed.get("username").getAsString(), authJSON_parsed.get("password").getAsString());
 			
 			if (result==null || !result.has("username")) {
@@ -54,21 +59,21 @@ public class SecurityResource {
 				return new JsonResponseBuilder().getJsonErrorResponse("User account has been deactivated.").toString();
 			}
 			
+			// Obtain a JWT
 			String jwt = new JWTHandler().generateToken(result.get("username").getAsString(), result.get("user_id").getAsString(), result.get("role").getAsString());
 			
 			if (! (jwt==null || new JWTHandler().validateToken(jwt))) {
-				return new JsonResponseBuilder().getJsonErrorResponse("Failed to Issue a JWT Authentication Token.").toString();
+				return new JsonResponseBuilder().getJsonErrorResponse("Failed to Issue a valid JWT Authentication Token.").toString();
 			}
 			
 			result = new JsonObject();
-			result.addProperty("STATUS", AUTH_STATUS);
+			result.addProperty("STATUS", DBOpStatus.AUTHENTICATED.toString());
 			result.addProperty("JWT Auth Token", jwt);
-
+			return result.toString();
+			
 		} catch (Exception ex){
-			result = new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
 		}
-
-		return result.toString();
 	}
 	
 
@@ -80,7 +85,7 @@ public class SecurityResource {
 	{
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonErrorResponse("You are not Authorized to Perform this action.").toString();
+			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
 
 		return role.readRoles().toString();
@@ -97,7 +102,7 @@ public class SecurityResource {
 
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonErrorResponse("You are not Authorized to Perform this action.").toString();
+			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
 
 		try {
@@ -108,10 +113,7 @@ public class SecurityResource {
 			if(!roleJSON_parsed.has("roles")) {
 				return (role.insertRole(roleJSON_parsed.get("role_id").getAsString(), roleJSON_parsed.get("role_description").getAsString())).toString();
 			} else if (!roleJSON_parsed.get("roles").isJsonArray()) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Invalid JSON Object.");
-				return result.toString();
+				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
 
 			int insertCount = 0;
@@ -136,11 +138,8 @@ public class SecurityResource {
 			}
 
 		} catch (Exception ex){
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
 		}
-
 		return result.toString();
 	}
 
@@ -154,7 +153,7 @@ public class SecurityResource {
 
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonErrorResponse("You are not Authorized to Perform this action.").toString();
+			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
 
 		try {
@@ -165,10 +164,7 @@ public class SecurityResource {
 			if(!roleJSON_parsed.has("roles")) {
 				return (role.updateRole(roleJSON_parsed.get("role_id").getAsString(), roleJSON_parsed.get("role_description").getAsString())).toString();
 			} else if (!roleJSON_parsed.get("roles").isJsonArray()) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Invalid JSON Object.");
-				return result.toString();
+				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
 
 			int updateCount = 0;
@@ -193,9 +189,7 @@ public class SecurityResource {
 			}
 
 		} catch (Exception ex){
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
 		}
 
 		return result.toString();
@@ -211,7 +205,7 @@ public class SecurityResource {
 
 		//Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonErrorResponse("You are not Authorized to Perform this action.").toString();
+			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
 
 		try {
@@ -222,10 +216,7 @@ public class SecurityResource {
 			if(!roleJSON_parsed.has("roles")) {
 				return (role.deleteRole(roleJSON_parsed.get("role_id").getAsString())).toString();
 			} else if (!roleJSON_parsed.get("roles").isJsonArray()) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Invalid JSON Object.");
-				return result.toString();
+				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
 
 			int insertCount = 0;
@@ -250,9 +241,7 @@ public class SecurityResource {
 			}
 
 		} catch (Exception ex){
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
 		}
 
 		return result.toString();

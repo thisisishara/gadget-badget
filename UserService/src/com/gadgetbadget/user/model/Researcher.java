@@ -6,23 +6,25 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Types;
 
-import com.gadgetbadget.user.util.DBOpStatus;
+import com.gadgetbadget.user.util.JsonResponseBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+/**
+ * This class represents researchers and is a type of users. Performs 
+ * database operations related to researchers, thus Extends the DBHandler.
+ * 
+ * @author Ishara_Dissanayake
+ */
 public class Researcher  extends User{
 	//Insert Researcher
 	public JsonObject insertResearcher(String username, String password, String role_id, String first_name, String last_name, String gender, String primary_email, String primary_phone, String institution, String field_of_study, int years_of_exp) {
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_insert_researcher(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
@@ -43,24 +45,18 @@ public class Researcher  extends User{
 
 			callableStmt.execute();
 
-			status = (int) callableStmt.getInt(12);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(12);		
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Researcher Inserted successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Researcher Inserted successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Insert Researcher.");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Insert Researcher.");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while inserting Researcher. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while inserting Researcher. Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 	//Read Researchers
@@ -71,10 +67,7 @@ public class Researcher  extends User{
 		{
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			String query = "SELECT u.user_id, u.role_id, u.first_name, u.last_name, u.gender, u.primary_email, u.primary_phone, r.institution, r.field_of_study , r.years_of_exp  FROM `user` u, `researcher` r WHERE u.user_id = r.researcher_id;";
@@ -82,10 +75,7 @@ public class Researcher  extends User{
 			ResultSet rs = stmt.executeQuery(query);
 
 			if(!rs.isBeforeFirst()) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE","Request Processed. No Researchers found.");
-				return result;
+				return new JsonResponseBuilder().getJsonSuccessResponse("Request Processed. No Researchers found.");
 			}
 
 			while (rs.next())
@@ -110,10 +100,8 @@ public class Researcher  extends User{
 		}
 		catch (Exception ex)
 		{
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while reading researchers. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while reading researchers. Exception Details:" + ex.getMessage());
 		}
 		return result;
 	}
@@ -121,16 +109,12 @@ public class Researcher  extends User{
 	//Update Researcher
 	public JsonObject updateResearcher(String user_id,String username, String password, String first_name, String last_name, String gender, String primary_email, String primary_phone, String institution, String field_of_study, int years_of_exp)
 	{
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_update_researcher(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}");
@@ -155,37 +139,27 @@ public class Researcher  extends User{
 
 			//test
 			status = (int) callableStmt.getInt(12);
-			result = new JsonObject();			
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Researcher " + user_id + " Updated successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Researcher " + user_id + " Updated successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Update Researcher " + user_id +".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Update Researcher " + user_id +".");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while updating Researcher " + user_id +". Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while updating Researcher " + user_id +". Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 	//Delete Researcher
 	public JsonObject deleteResearcher(String user_id) {
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue."); 
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_delete_researcher(?, ?)}");
@@ -199,23 +173,17 @@ public class Researcher  extends User{
 			callableStmt.execute();
 
 			//test
-			status = (int) callableStmt.getInt(2);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(2);	
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Researcher " + user_id + " deleted successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Researcher " + user_id + " deleted successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Delete Researcher "+ user_id +".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Delete Researcher "+ user_id +".");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while deleting Researcher. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while deleting Researcher. Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 }

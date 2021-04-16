@@ -6,23 +6,25 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Types;
 
-import com.gadgetbadget.user.util.DBOpStatus;
+import com.gadgetbadget.user.util.JsonResponseBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+/**
+ * This class represents consumers and is a type of users. Performs 
+ * database operations related to consumers, thus Extends the DBHandler.
+ * 
+ * @author Ishara_Dissanayake
+ */
 public class Consumer extends User{
 	//Insert Consumer
 	public JsonObject insertConsumer(String username, String password, String role_id, String first_name, String last_name, String gender, String primary_email, String primary_phone) {
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_insert_consumer(?, ?, ?, ?, ?, ?, ?, ?, ?)}");
@@ -40,24 +42,18 @@ public class Consumer extends User{
 
 			callableStmt.execute();
 
-			status = (int) callableStmt.getInt(9);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(9);		
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Consumer Inserted successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Consumer Inserted successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Insert Consumer.");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Insert Consumer.");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while inserting Consumer. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while inserting Consumer. Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 	//Read Consumer
@@ -68,10 +64,7 @@ public class Consumer extends User{
 		{
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			String query = "SELECT u.user_id, u.role_id, u.first_name, u.last_name, u.gender, u.primary_email, u.primary_phone FROM `user` u, `consumer` c WHERE u.user_id=c.consumer_id;";
@@ -79,10 +72,7 @@ public class Consumer extends User{
 			ResultSet rs = stmt.executeQuery(query);
 
 			if(!rs.isBeforeFirst()) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE","Request Processed. No Consumers found.");
-				return result;
+				return new JsonResponseBuilder().getJsonSuccessResponse("Request Processed. No Consumers found.");
 			}
 
 			while (rs.next())
@@ -104,10 +94,8 @@ public class Consumer extends User{
 		}
 		catch (Exception ex)
 		{
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while reading consumers. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while reading consumers. Exception Details:" + ex.getMessage());
 		}
 		return result;
 	}
@@ -115,16 +103,12 @@ public class Consumer extends User{
 	//Update Consumer
 	public JsonObject updateConsumer(String user_id,String username, String password, String first_name, String last_name, String gender, String primary_email, String primary_phone)
 	{
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_update_consumer(?, ?, ?, ?, ?, ?, ?, ?, ?)}");
@@ -145,38 +129,28 @@ public class Consumer extends User{
 			callableStmt.execute();
 
 			//test
-			status = (int) callableStmt.getInt(9);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(9);		
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Consumer " + user_id + " Updated successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Consumer " + user_id + " Updated successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Update Consumer " + user_id +".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Update Consumer " + user_id +".");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while updating Consumer " + user_id +". Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while updating Consumer " + user_id +". Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 	//Delete Consumer
 	public JsonObject deleteConsumer(String user_id) {
-		JsonObject result = null;
 		int status = 0;
 
 		try {
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			CallableStatement callableStmt = conn.prepareCall("{call sp_delete_consumer(?, ?)}");
@@ -190,23 +164,17 @@ public class Consumer extends User{
 			callableStmt.execute();
 
 			//test
-			status = (int) callableStmt.getInt(2);
-			result = new JsonObject();			
+			status = (int) callableStmt.getInt(2);	
 
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Consumer " + user_id + " deleted successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Consumer " + user_id + " deleted successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Delete Consumer "+ user_id +".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Delete Consumer "+ user_id +".");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while deleting consumer. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while deleting consumer. Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 }

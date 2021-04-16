@@ -4,25 +4,27 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import com.gadgetbadget.user.util.DBHandler;
-import com.gadgetbadget.user.util.DBOpStatus;
+import com.gadgetbadget.user.util.JsonResponseBuilder;
 import com.gadgetbadget.user.util.UserType;
 import com.gadgetbadget.user.util.ValidationHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+/**
+ * This class represents payment methods of all users except for employees.
+ * Performs database operations related to payment methods, thus Extends the DBHandler.
+ * 
+ * @author Ishara_Dissanayake
+ */
 public class PaymentMethod extends DBHandler{
 	//Insert a PaymentMethod
 	public JsonObject insertPaymentMethod(String user_id, String creaditcard_type, String creditcard_no, String creditcard_security_no, String exp_date, String billing_address) {
-		JsonObject result = null;
 
 		try {
 
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			String query = "INSERT INTO `paymentmethod`(`user_id`, `creditcard_type`, `creditcard_no`, `creditcard_security_no`, `exp_date`, `billing_address`) VALUES(?,?,?,?,?,?);";
@@ -38,23 +40,16 @@ public class PaymentMethod extends DBHandler{
 			int status = preparedStmt.executeUpdate();
 			conn.close();
 
-			result = new JsonObject();
-
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Payment Method of user " + user_id + " Inserted successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Payment Method of user " + user_id + " Inserted successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Insert Payment Method of user " + user_id + ".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Insert Payment Method of user " + user_id + ".");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while inserting Payment Method of user " + user_id + ". Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonFailedResponse("Error occurred while inserting Payment Method of user " + user_id + ". Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 	//Read PaymentMethods
@@ -66,18 +61,12 @@ public class PaymentMethod extends DBHandler{
 		{
 			//verify user_type	
 			if(!new ValidationHandler().validateUserType(user_id, user_type)) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Invalid User ID Format.");
-				return result;
+				return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.");
 			}			
 
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			String query = "SELECT * FROM `paymentmethod` WHERE `user_id`= ?";
@@ -87,10 +76,7 @@ public class PaymentMethod extends DBHandler{
 			ResultSet rs = preparedStmt.executeQuery();
 
 			if(!rs.isBeforeFirst()) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE","Request Processed. No Payment Method found for user " + user_id + ".");
-				return result;
+				return new JsonResponseBuilder().getJsonSuccessResponse("Request Processed. No Payment Method found for user " + user_id + ".");
 			}
 
 			while (rs.next())
@@ -112,10 +98,8 @@ public class PaymentMethod extends DBHandler{
 		}
 		catch (Exception ex)
 		{
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while retrieving Payment Method(s) of user " + user_id + ". Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while retrieving Payment Method(s) of user " + user_id + ". Exception Details:" + ex.getMessage());
 		}
 		return result;
 	}
@@ -128,10 +112,7 @@ public class PaymentMethod extends DBHandler{
 		{
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			String query = "SELECT * FROM `paymentmethod` WHERE `user_id`= ? AND `creditcard_no`=?";
@@ -142,10 +123,7 @@ public class PaymentMethod extends DBHandler{
 			ResultSet rs = preparedStmt.executeQuery();
 
 			if(!rs.isBeforeFirst()) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE","Request Processed. No Payment Method found under " + creditcard_no + " for user " + user_id + ".");
-				return result;
+				return new JsonResponseBuilder().getJsonSuccessResponse("Request Processed. No Payment Method found under " + creditcard_no + " for user " + user_id + ".");
 			}
 
 			if (rs.next())
@@ -163,10 +141,8 @@ public class PaymentMethod extends DBHandler{
 		}
 		catch (Exception ex)
 		{
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while retrieving Payment Method of user " + user_id + ". Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while retrieving Payment Method of user " + user_id + ". Exception Details:" + ex.getMessage());
 		}
 		return result;
 	}
@@ -174,16 +150,11 @@ public class PaymentMethod extends DBHandler{
 	//Update a PaymentMethod
 	public JsonObject updatePaymentMethod(String user_id, String creditcard_type, String new_creditcard_no, String creditcard_no, String creditcard_security_no, String exp_date, String billing_address)
 	{
-		JsonObject result = null;
-
 		try {			
 
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			String query = "UPDATE `paymentmethod` SET  `creditcard_no`=?, `creditcard_type`=?, `creditcard_security_no`=?, `exp_date`=?, `billing_address`=? WHERE `user_id`=? AND `creditcard_no`=?;";
@@ -200,37 +171,26 @@ public class PaymentMethod extends DBHandler{
 			int status = preparedStmt.executeUpdate();
 			conn.close();
 
-			result = new JsonObject();
-
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Payment Method of user " + user_id + " Updated successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse( "Payment Method of user " + user_id + " Updated successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to Update Payment Method of user " + user_id + ".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to Update Payment Method of user " + user_id + ".");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while updating Payment Method of user " + user_id + ". Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while updating Payment Method of user " + user_id + ". Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 	//Delete a Specific PaymentMethod
 	public JsonObject deletePaymentMethod(String user_id, String creditcard_no) {
-		JsonObject result = null;
 
 		try {
 
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			String query = "DELETE FROM `paymentmethod` WHERE `user_id`=? AND `creditcard_no`=?;";
@@ -242,45 +202,31 @@ public class PaymentMethod extends DBHandler{
 			int status = preparedStmt.executeUpdate();
 			conn.close();
 
-			result = new JsonObject();
-
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Payment Method of user " + user_id + " was deleted successfully.");
+				return new JsonResponseBuilder().getJsonSuccessResponse("Payment Method of user " + user_id + " was deleted successfully.");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Unable to delete Payment Method of user " + user_id);
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to delete Payment Method of user " + user_id);
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while deleting Payment Method of user " + user_id + ". Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while deleting Payment Method of user " + user_id + ". Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 
 	//Delete all PaymentMethod
 	public JsonObject deletePaymentMethods(String user_id, UserType user_type) {
-		JsonObject result = null;
 
 		try {
 
 			//verify user_type	
 			if(!new ValidationHandler().validateUserType(user_id, user_type)) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE","Invalid User ID Format.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.");
 			}
 
 			Connection conn = getConnection();
 			if (conn == null) {
-				result = new JsonObject();
-				result.addProperty("STATUS", DBOpStatus.ERROR.toString());
-				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
-				return result; 
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
 			String query = "DELETE FROM `paymentmethod` WHERE `user_id`=?;";
@@ -291,22 +237,14 @@ public class PaymentMethod extends DBHandler{
 			int status = preparedStmt.executeUpdate();
 			conn.close();
 
-			result = new JsonObject();
-
 			if(status > 0) {
-				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "All Payment Methods of user " + user_id + " was deleted successfully. Total number of Payment Methods deleted: " + status + ".");
+				return new JsonResponseBuilder().getJsonSuccessResponse("All Payment Methods of user " + user_id + " was deleted successfully. Total number of Payment Methods deleted: " + status + ".");
 			} else {
-				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "There are no Payment Methods of user " + user_id + " to delete.");
+				return new JsonResponseBuilder().getJsonFailedResponse("There are no Payment Methods of user " + user_id + " to delete.");
 			}
 		}
 		catch (Exception ex) {
-			result = new JsonObject();
-			result.addProperty("STATUS", DBOpStatus.EXCEPTION.toString());
-			result.addProperty("MESSAGE", "Error occurred while deleting all Payment Methods of user " + user_id + ". Exception Details:" + ex.getMessage());
-			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while deleting all Payment Methods of user " + user_id + ". Exception Details:" + ex.getMessage());
 		}
-		return result;
 	}
 }
