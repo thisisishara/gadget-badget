@@ -1,6 +1,7 @@
 package com.gadgetbadget.marketplace;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -127,6 +128,60 @@ public class ProductService {
 			} else {
 				result.addProperty("STATUS", "UNSUCCESSFUL");
 				result.addProperty("MESSAGE", "Only " + insertCount +" product Categories were Updated. Updating failed for "+ (elemCount-insertCount) + " product Categories.");
+			}
+
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", "EXCEPTION");
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+		}
+
+		return result.toString();
+	}
+	
+	
+	@DELETE
+	@Path("/product-categories")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String deleteProductCategory(String productCategoryJSON)
+	{
+		JsonObject result = null;
+
+		try {
+
+			JsonObject productCategoryJSON_parsed = new JsonParser().parse(productCategoryJSON).getAsJsonObject();
+
+			//check if multiple inserts
+			if(!productCategoryJSON_parsed.has("product-categories")) {
+				return (productCategory.deleteProductCategory(productCategoryJSON_parsed.get("category_id").getAsString())).toString();
+			
+			} else if (!productCategoryJSON_parsed.get("product-categories").isJsonArray()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "ERROR");
+				result.addProperty("MESSAGE","Invalid JSON Object.");
+				return result.toString();
+			}
+
+			int insertCount = 0;
+			int elemCount = productCategoryJSON_parsed.get("product-categories").getAsJsonArray().size();
+
+			for (JsonElement productCategoryElem : productCategoryJSON_parsed.get("product-categories").getAsJsonArray()) {
+				JsonObject productCategoryObj = productCategoryElem.getAsJsonObject();
+				JsonObject response = (productCategory.deleteProductCategory(productCategoryObj.get("category_id").getAsString()));
+
+				if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
+					insertCount++;
+				}
+			}
+
+			result = new JsonObject();
+			if(insertCount == elemCount) {
+				result.addProperty("STATUS","SUCCESSFUL");
+				result.addProperty("MESSAGE", insertCount + " product categories were deleted successfully.");
+			} else {
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("MESSAGE", "Only " + insertCount +" product categories were deleted. Deleting failed for "+ (elemCount-insertCount) + "product categories.");
 			}
 
 		} catch (Exception ex){
