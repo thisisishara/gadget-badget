@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"com.gadgetbadget.user"},{"l":"com.gadgetbadget.user.model"},{"l":"com.gadgetbadget.user.security"},{"l":"com.gadgetbadget.user.util"}]
