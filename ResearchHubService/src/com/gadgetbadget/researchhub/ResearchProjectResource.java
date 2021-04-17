@@ -17,7 +17,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 @Path("/research-projects")
-public class ResearchprojectService {
+public class ResearchProjectResource {
 	Category category = new Category();
 	Researchproject project = new Researchproject();
 	Collaborator collaborator=new Collaborator();
