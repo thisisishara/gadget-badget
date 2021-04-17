@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 public class Product extends DBHandler{
 
 	//insert product method
-	public JsonObject insertProduct(String researcherID, String productName,  String productDescription, String catID, int availableItems, double price ) {
+	public JsonObject insertProduct(String researcher_id, String product_name,  String product_description, String category_id, int available_items, double price ) {
 		 
 		JsonObject result = null;
 		
@@ -32,11 +32,11 @@ public class Product extends DBHandler{
 			
 			
 			// binding values 
-			preparedStmt.setString(1, researcherID); 
-			preparedStmt.setString(2, productName); 
-			preparedStmt.setString(3, productDescription);
-			preparedStmt.setString(4, catID);
-			preparedStmt.setInt(5, availableItems);
+			preparedStmt.setString(1, researcher_id); 
+			preparedStmt.setString(2, product_name); 
+			preparedStmt.setString(3, product_description);
+			preparedStmt.setString(4, category_id);
+			preparedStmt.setInt(5, available_items);
 			preparedStmt.setDouble(6, price);
 
 			//execute the statement
@@ -162,7 +162,7 @@ public class Product extends DBHandler{
 	}
 	
 	//update product method
-	public JsonObject updateProduct(String product_id, String researcherID, String productName,  String productDescription, String catID, int availableItems, double price ) {
+	public JsonObject updateProduct(String product_id, String researcher_id, String product_name,  String product_description, String category_id, int available_items, double price ) {
 		 
 		JsonObject result = null;
 		
@@ -182,11 +182,11 @@ public class Product extends DBHandler{
 			
 			
 			// binding values 
-			preparedStmt.setString(1, researcherID); 
-			preparedStmt.setString(2, productName); 
-			preparedStmt.setString(3, productDescription);
-			preparedStmt.setString(4, catID);
-			preparedStmt.setInt(5, availableItems);
+			preparedStmt.setString(1, researcher_id); 
+			preparedStmt.setString(2, product_name); 
+			preparedStmt.setString(3, product_description);
+			preparedStmt.setString(4, category_id);
+			preparedStmt.setInt(5, available_items);
 			preparedStmt.setDouble(6, price);
 			preparedStmt.setString(7, product_id);
 			

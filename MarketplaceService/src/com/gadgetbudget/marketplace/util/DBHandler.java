@@ -12,7 +12,7 @@ public class DBHandler {
 		try
 		{
 			Class.forName("com.mysql.jdbc.Driver");
-			con = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/gadgetbadget_marketplace","root", "@ThaR13741");
+			con = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/gadgetbadget_marketplace","root", "");
 			//For testing
 			System.out.print("Successfully connected");
 		}
