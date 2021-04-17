@@ -208,59 +208,125 @@ public class ProductService {
 		}
 		
 		//insert method
-				@POST
-				@Path("/products")
-				@Consumes(MediaType.APPLICATION_JSON)
-				@Produces(MediaType.APPLICATION_JSON)
-				public String insertProduct(String productCategoryJSON)
-				{
-					JsonObject result = null;
-			
-					try {
-			
-						JsonObject productCategoryJSON_parsed = new JsonParser().parse(productCategoryJSON).getAsJsonObject();
-			
-						//check if multiple inserts
-						if(!productCategoryJSON_parsed.has("products")) {
-							return (product.insertProduct(productCategoryJSON_parsed.get("researcher_id").getAsString(),productCategoryJSON_parsed.get("product_name").getAsString(),
-											productCategoryJSON_parsed.get("product_description").getAsString(),productCategoryJSON_parsed.get("category_id").getAsString(),
-											productCategoryJSON_parsed.get("available_items").getAsInt(),productCategoryJSON_parsed.get("price").getAsDouble())).toString();
-						} else if (!productCategoryJSON_parsed.get("products").isJsonArray()) {
-							result = new JsonObject();
-							result.addProperty("STATUS", "ERROR");
-							result.addProperty("MESSAGE","Invalid JSON Object.");
-							return result.toString();
-						}
-			
-						int insertCount = 0;
-						int elemCount = productCategoryJSON_parsed.get("products").getAsJsonArray().size();
-			
-						for (JsonElement productCategoryElem : productCategoryJSON_parsed.get("products").getAsJsonArray()) {
-								JsonObject productCategoryObj = productCategoryElem.getAsJsonObject();
-								JsonObject response = (product.insertProduct(productCategoryObj.get("researcher_id").getAsString(),productCategoryObj.get("product_name").getAsString(),
-										productCategoryObj.get("product_description").getAsString(),productCategoryObj.get("category_id").getAsString(),
-										productCategoryObj.get("available_items").getAsInt(),productCategoryObj.get("price").getAsDouble()));
-			
-								if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
-									insertCount++;
-								}
-						}
-			
-						result = new JsonObject();
-						if(insertCount == elemCount) {
-							result.addProperty("STATUS", "SUCCESSFUL");
-							result.addProperty("MESSAGE", insertCount + " Products were inserted successfully.");
-						} else {
-							result.addProperty("STATUS", "UNSUCCESSFUL");
-							result.addProperty("MESSAGE", "Only " + insertCount +" Products were Inserted. Inserting failed for "+ (elemCount-insertCount) + "Products.");
-						}
-			
-					} catch (Exception e){
-						result = new JsonObject();
-						result.addProperty("STATUS", "EXCEPTION");
-						result.addProperty("MESSAGE", "Exception Details: " + e.getMessage());
-					}
-			
+		@POST
+		@Path("/products")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		public String insertProduct(String productCategoryJSON)
+		{
+			JsonObject result = null;
+	
+			try {
+	
+				JsonObject productCategoryJSON_parsed = new JsonParser().parse(productCategoryJSON).getAsJsonObject();
+	
+				//check if multiple inserts
+				if(!productCategoryJSON_parsed.has("products")) {
+					return (product.insertProduct(productCategoryJSON_parsed.get("researcher_id").getAsString(),productCategoryJSON_parsed.get("product_name").getAsString(),
+									productCategoryJSON_parsed.get("product_description").getAsString(),productCategoryJSON_parsed.get("category_id").getAsString(),
+									productCategoryJSON_parsed.get("available_items").getAsInt(),productCategoryJSON_parsed.get("price").getAsDouble())).toString();
+				} else if (!productCategoryJSON_parsed.get("products").isJsonArray()) {
+					result = new JsonObject();
+					result.addProperty("STATUS", "ERROR");
+					result.addProperty("MESSAGE","Invalid JSON Object.");
 					return result.toString();
 				}
+	
+				int insertCount = 0;
+				int elemCount = productCategoryJSON_parsed.get("products").getAsJsonArray().size();
+	
+				for (JsonElement productCategoryElem : productCategoryJSON_parsed.get("products").getAsJsonArray()) {
+						JsonObject productCategoryObj = productCategoryElem.getAsJsonObject();
+						JsonObject response = (product.insertProduct(productCategoryObj.get("researcher_id").getAsString(),productCategoryObj.get("product_name").getAsString(),
+								productCategoryObj.get("product_description").getAsString(),productCategoryObj.get("category_id").getAsString(),
+								productCategoryObj.get("available_items").getAsInt(),productCategoryObj.get("price").getAsDouble()));
+	
+						if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
+							insertCount++;
+						}
+				}
+	
+				result = new JsonObject();
+				if(insertCount == elemCount) {
+					result.addProperty("STATUS", "SUCCESSFUL");
+					result.addProperty("MESSAGE", insertCount + " Products were inserted successfully.");
+				} else {
+					result.addProperty("STATUS", "UNSUCCESSFUL");
+					result.addProperty("MESSAGE", "Only " + insertCount +" Products were Inserted. Inserting failed for "+ (elemCount-insertCount) + "Products.");
+				}
+	
+			} catch (Exception e){
+				result = new JsonObject();
+				result.addProperty("STATUS", "EXCEPTION");
+				result.addProperty("MESSAGE", "Exception Details: " + e.getMessage());
+			}
+	
+			return result.toString();
+		}
+		
+		//update method
+		@PUT
+		@Path("/products")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		public String updateProduct(String productCategoryJSON)
+		{
+			JsonObject result = null;
+	
+			try {
+	
+				JsonObject productCategoryJSON_parsed = new JsonParser().parse(productCategoryJSON).getAsJsonObject();
+	
+				//check if multiple inserts
+				if(!productCategoryJSON_parsed.has("products")) {
+					return (product.updateProduct(productCategoryJSON_parsed.get("product_id").getAsString(),
+							productCategoryJSON_parsed.get("researcher_id").getAsString(),
+							productCategoryJSON_parsed.get("product_name").getAsString(),
+							productCategoryJSON_parsed.get("product_description").getAsString(),
+							productCategoryJSON_parsed.get("category_id").getAsString(),
+							productCategoryJSON_parsed.get("available_items").getAsInt(),
+							productCategoryJSON_parsed.get("price").getAsDouble())).toString();
+				
+				} else if (!productCategoryJSON_parsed.get("products").isJsonArray()) {
+					result = new JsonObject();
+					result.addProperty("STATUS", "ERROR");
+					result.addProperty("MESSAGE","Invalid JSON Object.");
+					return result.toString();
+				}
+	
+				int insertCount = 0;
+				int elemCount = productCategoryJSON_parsed.get("products").getAsJsonArray().size();
+	
+				for (JsonElement productCategoryElem : productCategoryJSON_parsed.get("products").getAsJsonArray()) {
+					JsonObject productCategoryObj = productCategoryElem.getAsJsonObject();
+					JsonObject response = (product.updateProduct(productCategoryObj.get("product_id").getAsString(),
+							productCategoryObj.get("researcher_id").getAsString(),
+							productCategoryObj.get("product_name").getAsString(),
+							productCategoryObj.get("product_description").getAsString(),
+							productCategoryObj.get("category_id").getAsString(),
+							productCategoryObj.get("available_items").getAsInt(),
+							productCategoryObj.get("price").getAsDouble()));
+	
+					if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
+						insertCount++;
+					}
+				}
+	
+				result = new JsonObject();
+				if(insertCount == elemCount) {
+					result.addProperty("STATUS", "SUCCESSFUL");
+					result.addProperty("MESSAGE", insertCount + " Products were updated successfully.");
+				} else {
+					result.addProperty("STATUS", "UNSUCCESSFUL");
+					result.addProperty("MESSAGE", "Only " + insertCount +" products were Updated. Updating failed for "+ (elemCount-insertCount) + " products.");
+				}
+	
+			} catch (Exception e){
+				result = new JsonObject();
+				result.addProperty("STATUS", "EXCEPTION");
+				result.addProperty("MESSAGE", "Exception Details: " + e.getMessage());
+			}
+	
+			return result.toString();
+		}
 }
