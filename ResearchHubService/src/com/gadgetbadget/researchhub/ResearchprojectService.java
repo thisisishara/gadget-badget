@@ -10,6 +10,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.gadgetbadget.researchhub.model.Category;
+import com.gadgetbadget.researchhub.model.Collaborator;
 import com.gadgetbadget.researchhub.model.Researchproject;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,6 +20,7 @@ import com.google.gson.JsonParser;
 public class ResearchprojectService {
 	Category category = new Category();
 	Researchproject project = new Researchproject();
+	Collaborator collaborator=new Collaborator();
 	
 	 // Categories related End-points.
 		@GET
@@ -359,4 +361,174 @@ public class ResearchprojectService {
 		}
 
 		
+		// Collaborators related End-points.
+		@GET
+		@Path("/collaborators")
+		@Produces(MediaType.APPLICATION_JSON)
+		public String readCollaborator()
+		{
+			return collaborator.readCollaborator().toString();
+		}
+		
+		
+		@POST
+		@Path("/collaborators")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		public String insertCollaborator(String collaboratorJSON)
+		{
+			JsonObject result = null;
+
+			try {
+
+				JsonObject collaboratorJSON_parsed = new JsonParser().parse(collaboratorJSON).getAsJsonObject();
+
+				//check if multiple inserts
+				if(!collaboratorJSON_parsed.has("collaborators")) {
+					return (collaborator.insertCollaborator(collaboratorJSON_parsed.get("project_id").getAsString(),collaboratorJSON_parsed.get("full_name").getAsString(), collaboratorJSON_parsed.get("institution").getAsString())).toString();
+				} else if (!collaboratorJSON_parsed.get("collaborators").isJsonArray()) {
+					result = new JsonObject();
+					result.addProperty("STATUS", "ERROR");
+					result.addProperty("MESSAGE","Invalid JSON Object.");
+					return result.toString();
+				}
+
+				int insertCount = 0;
+				int elemCount = collaboratorJSON_parsed.get("collaborators").getAsJsonArray().size();
+
+				for (JsonElement collaboratorElem : collaboratorJSON_parsed.get("collaborators").getAsJsonArray()) {
+					JsonObject collaboratorObj = collaboratorElem.getAsJsonObject();
+					JsonObject response = (collaborator.insertCollaborator(collaboratorObj.get("project_id").getAsString(),collaboratorObj.get("full_name").getAsString(), collaboratorObj.get("institution").getAsString()));
+
+					if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
+						insertCount++;
+					}
+				}
+
+				result = new JsonObject();
+				if(insertCount == elemCount) {
+					result.addProperty("STATUS", "SUCCESSFUL");
+					result.addProperty("MESSAGE", insertCount + " Collaborators were inserted successfully.");
+				} else {
+					result.addProperty("STATUS", "UNSUCCESSFUL");
+					result.addProperty("MESSAGE", "Only " + insertCount +" Collaborators were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Collaborators.");
+				}
+
+			} catch (Exception ex){
+				result = new JsonObject();
+				result.addProperty("STATUS", "EXCEPTION");
+				result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+			}
+
+			return result.toString();
+		}
+		
+		
+		@PUT
+		@Path("/collaborators")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		public String updateCollaborator(String collaboratorJSON)
+		{
+			JsonObject result = null;
+
+			try {
+
+				JsonObject collaboratorJSON_parsed = new JsonParser().parse(collaboratorJSON).getAsJsonObject();
+
+				//check if multiple inserts
+				if(!collaboratorJSON_parsed.has("collaborators")) {
+					return (collaborator.updateCollaborator(collaboratorJSON_parsed.get("project_id").getAsString(),collaboratorJSON_parsed.get("full_name").getAsString(),collaboratorJSON_parsed.get("institution").getAsString())).toString();
+				} else if (!collaboratorJSON_parsed.get("collaborators").isJsonArray()) {
+					result = new JsonObject();
+					result.addProperty("STATUS", "ERROR");
+					result.addProperty("MESSAGE","Invalid JSON Object.");
+					return result.toString();
+				}
+
+				int insertCount = 0;
+				int elemCount = collaboratorJSON_parsed.get("collaborators").getAsJsonArray().size();
+
+				for (JsonElement collaboratorElem : collaboratorJSON_parsed.get("collaborators").getAsJsonArray()) {
+					JsonObject collaboratorObj = collaboratorElem.getAsJsonObject();
+					JsonObject response = (collaborator.updateCollaborator(collaboratorObj.get("project_id").getAsString(),collaboratorObj.get("full_name").getAsString(), collaboratorObj.get("institution").getAsString()));
+
+					if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
+						insertCount++;
+					}
+				}
+
+				result = new JsonObject();
+				if(insertCount == elemCount) {
+					result.addProperty("STATUS", "SUCCESSFUL");
+					result.addProperty("MESSAGE", insertCount + " Collaborators were updated successfully.");
+				} else {
+					result.addProperty("STATUS", "UNSUCCESSFUL");
+					result.addProperty("MESSAGE", "Only " + insertCount +" Collaborators were Updated. Updating failed for "+ (elemCount-insertCount) + " Collaborators.");
+				}
+
+			} catch (Exception ex){
+				result = new JsonObject();
+				result.addProperty("STATUS", "EXCEPTION");
+				result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+			}
+
+			return result.toString();
+		}
+
+		
+		
+		
+		@DELETE
+		@Path("/collaborators")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		public String deleteCollaborator(String collaboratorJSON)
+		{
+			JsonObject result = null;
+
+			try {
+
+				JsonObject collaboratorJSON_parsed = new JsonParser().parse(collaboratorJSON).getAsJsonObject();
+
+				//check if multiple inserts
+				if(!collaboratorJSON_parsed.has("collaborators")) {
+					return (collaborator.deleteCollaborator(collaboratorJSON_parsed.get("project_id").getAsString(),collaboratorJSON_parsed.get("full_name").getAsString())).toString();
+				} else if (!collaboratorJSON_parsed.get("collaborators").isJsonArray()) {
+					result = new JsonObject();
+					result.addProperty("STATUS", "ERROR");
+					result.addProperty("MESSAGE","Invalid JSON Object.");
+					return result.toString();
+				}
+
+				int insertCount = 0;
+				int elemCount = collaboratorJSON_parsed.get("collaborators").getAsJsonArray().size();
+
+				for (JsonElement collaboratorElem : collaboratorJSON_parsed.get("collaborators").getAsJsonArray()) {
+					JsonObject collaboratorObj = collaboratorElem.getAsJsonObject();
+					JsonObject response = (collaborator.deleteCollaborator(collaboratorObj.get("project_id").getAsString(),collaboratorObj.get("full_name").getAsString()));
+
+					if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
+						insertCount++;
+					}
+				}
+
+				result = new JsonObject();
+				if(insertCount == elemCount) {
+					result.addProperty("STATUS", "SUCCESSFUL");
+					result.addProperty("MESSAGE", insertCount + " Collaborators were deleted successfully.");
+				} else {
+					result.addProperty("STATUS", "UNSUCCESSFUL");
+					result.addProperty("MESSAGE", "Only " + insertCount +" Collaborators were deleted. Deleting failed for "+ (elemCount-insertCount) + " Collaborators.");
+				}
+
+			} catch (Exception ex){
+				result = new JsonObject();
+				result.addProperty("STATUS", "EXCEPTION");
+				result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+			}
+
+			return result.toString();
+		}
+
 }
