@@ -2,11 +2,14 @@ package com.gadgetbadget.user.model;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Types;
 
 import com.gadgetbadget.user.util.JsonResponseBuilder;
+import com.gadgetbadget.user.util.UserType;
+import com.gadgetbadget.user.util.ValidationHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -72,7 +75,7 @@ public class Funder  extends User{
 			ResultSet rs = stmt.executeQuery(query);
 
 			if(!rs.isBeforeFirst()) {
-				return new JsonResponseBuilder().getJsonSuccessResponse("Request Processed. No Funders found.");
+				return new JsonResponseBuilder().getJsonFailedResponse("Request Processed. Funder not found.");
 			}
 
 			while (rs.next())
@@ -95,9 +98,59 @@ public class Funder  extends User{
 		}
 		catch (Exception ex)
 		{
-			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while reading funders. Exception Details:" + ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while reading funder. Exception Details:" + ex.getMessage());
 		}
 		return result;
+	}
+
+	//Read Funders By Id
+	public JsonObject readFunderById(String funder_id) {
+		JsonObject result = null;
+		try
+		{			
+			// Verify requested ID Pattern
+			if(!(new ValidationHandler().validateUserType(funder_id, UserType.FUNDR))) {
+				return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format."); 
+			}
+			
+			Connection conn = getConnection();
+			if (conn == null) {
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
+			}
+
+			String query = "SELECT u.user_id, u.role_id, u.first_name, u.last_name, u.gender, u.primary_email, u.primary_phone, f.organization FROM `user` u, `funder` f WHERE u.user_id=f.funder_id AND u.user_id = ?";
+			PreparedStatement preparedStmt = conn.prepareStatement(query);
+			
+			preparedStmt.setString(1, funder_id);
+			ResultSet rs = preparedStmt.executeQuery();
+
+			if(!rs.isBeforeFirst()) {
+				return new JsonResponseBuilder().getJsonFailedResponse("Request Processed. No Funders found.");
+			}
+
+
+			while (rs.next())
+			{
+				JsonObject recordObject = new JsonObject();
+				recordObject.addProperty("user_id", rs.getString("user_id"));
+				recordObject.addProperty("first_name", rs.getString("first_name"));
+				recordObject.addProperty("last_name", rs.getString("last_name"));
+				recordObject.addProperty("gender", rs.getString("gender"));
+				recordObject.addProperty("primary_email", rs.getString("primary_email"));
+				recordObject.addProperty("primary_phone", rs.getString("primary_phone"));
+				recordObject.addProperty("organization", rs.getString("organization"));
+				result = recordObject;
+			}
+			conn.close();
+
+			return result;
+
+		}
+		catch (Exception ex)
+		{
+			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while reading funder. Exception Details:" + ex.getMessage());
+		}
 	}
 
 	//Update Funder

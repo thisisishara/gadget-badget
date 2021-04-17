@@ -59,14 +59,14 @@ public class UserResource {
 	@GET
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getUserStatistics(@Context SecurityContext securityContext) {
+	public String getUsers(@Context SecurityContext securityContext, @QueryParam("stats") boolean isStats) {
 
 		//Authorize only ADMINs
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
 			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
 
-		return user.getUserAccountStatistics().toString();
+		return user.getUsers(isStats).toString();
 	}
 
 	//Change Account State [Activate/Deactivate]
@@ -135,10 +135,61 @@ public class UserResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String readEmployees(@Context SecurityContext securityContext) {
 		// Authorize only ADMINs
-		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
+		if(!(securityContext.isUserInRole(UserType.ADMIN.toString()))) {
 			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
 		return employee.readEmployees().toString();
+	}
+
+	@GET
+	@Path("/employees/{employee_id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String readEmployees(@Context SecurityContext securityContext, @PathParam("employee_id") String uri_employee_id) {
+		// Authorize only ADMINs, FNMGRs, and EMPLYs
+		if(!(securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FNMGR.toString()) || securityContext.isUserInRole(UserType.EMPLY.toString()))) {
+			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+		}
+
+		// Get Current User's ID
+		String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
+
+		// Check if its a Single ID or Multiple IDs
+		if(!uri_employee_id.contains(",")) {
+			// Allow retrieving only if the IDs are matched for NON ADMINs
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+				if (! uri_employee_id.equals(current_user_id)){
+					return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to retrieve details of other Employees.").toString();
+				}
+			}
+
+			return employee.readEmployeeById(uri_employee_id).toString();
+		}
+
+		// Allow only ADMINs to retrieve multiple employees at a time
+		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+			return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to retrieve multiple Employees!").toString();
+		}
+
+		String[] ids = uri_employee_id.split(",");
+
+		int readCount = 0;
+		int elemCount = ids.length;
+		JsonArray resultArray = new JsonArray();
+
+		for (String id : ids) {
+			JsonObject response = employee.readEmployeeById(id);
+
+			if (!response.has("MESSAGE")) {
+				readCount++;
+				resultArray.add(response);
+			}
+		}
+
+		if(readCount == elemCount) {
+			return new JsonResponseBuilder().getJsonArrayResponse("employees", resultArray, DBOpStatus.SUCCESSFUL, readCount + " Employees were retrieved successfully.").toString();
+		} else {
+			return new JsonResponseBuilder().getJsonArrayResponse("employees", resultArray, DBOpStatus.UNSUCCESSFUL, "Only " + readCount +" Employees were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Employees.").toString();
+		}
 	}
 
 	@POST
@@ -197,7 +248,7 @@ public class UserResource {
 			String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
 
 			// Authorize only ADMINs & EMPLYs
-			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.EMPLY.toString()))) {
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.EMPLY.toString())  || securityContext.isUserInRole(UserType.FNMGR.toString()))) {
 				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 			}
 
@@ -243,7 +294,6 @@ public class UserResource {
 			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
 		}
 	}
-
 
 	@DELETE
 	@Path("/employees")
@@ -303,7 +353,6 @@ public class UserResource {
 		}
 	}
 
-
 	//Consumer End-points
 	@GET
 	@Path("/consumers")
@@ -314,6 +363,57 @@ public class UserResource {
 			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
 		return consumer.readConsumers().toString();
+	}
+
+	@GET
+	@Path("/consumers/{consumer_id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String readConsumers(@Context SecurityContext securityContext, @PathParam("consumer_id") String uri_consumer_id) {
+		// Authorize only ADMINs, CNSMRs
+		if(!(securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.CNSMR.toString()))) {
+			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+		}
+
+		// Get Current User's ID
+		String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
+
+		// Check if its a Single ID or Multiple IDs
+		if(!uri_consumer_id.contains(",")) {
+			// Allow retrieving only if the IDs are matched for NON ADMINs
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+				if (! uri_consumer_id.equals(current_user_id)){
+					return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to retrieve details of other Consumers.").toString();
+				}
+			}
+
+			return consumer.readConsumerById(uri_consumer_id).toString();
+		}
+
+		// Allow only ADMINs to retrieve multiple consumers at a time
+		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+			return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to retrieve multiple Consumers!").toString();
+		}
+
+		String[] ids = uri_consumer_id.split(",");
+
+		int readCount = 0;
+		int elemCount = ids.length;
+		JsonArray resultArray = new JsonArray();
+
+		for (String id : ids) {
+			JsonObject response = consumer.readConsumerById(id);
+
+			if (!response.has("MESSAGE")) {
+				readCount++;
+				resultArray.add(response);
+			}
+		}
+
+		if(readCount == elemCount) {
+			return new JsonResponseBuilder().getJsonArrayResponse("consumers", resultArray, DBOpStatus.SUCCESSFUL, readCount + " Consumers were retrieved successfully.").toString();
+		} else {
+			return new JsonResponseBuilder().getJsonArrayResponse("consumers", resultArray, DBOpStatus.UNSUCCESSFUL, "Only " + readCount +" Consumers were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Consumers.").toString();
+		}
 	}
 
 	@POST
@@ -491,6 +591,57 @@ public class UserResource {
 		return funder.readFunders().toString();
 	}
 
+	@GET
+	@Path("/funders/{funder_id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String readFunders(@Context SecurityContext securityContext, @PathParam("funder_id") String uri_funder_id) {
+		// Authorize only ADMINs, FUNDRs
+		if(!(securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FUNDR.toString()))) {
+			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+		}
+
+		// Get Current User's ID
+		String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
+
+		// Check if its a Single ID or Multiple IDs
+		if(!uri_funder_id.contains(",")) {
+			// Allow retrieving only if the IDs are matched for NON ADMINs
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+				if (! uri_funder_id.equals(current_user_id)){
+					return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to retrieve details of other Funders.").toString();
+				}
+			}
+
+			return funder.readFunderById(uri_funder_id).toString();
+		}
+
+		// Allow only ADMINs to retrieve multiple funders at a time
+		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+			return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to retrieve multiple Funders!").toString();
+		}
+
+		String[] ids = uri_funder_id.split(",");
+
+		int readCount = 0;
+		int elemCount = ids.length;
+		JsonArray resultArray = new JsonArray();
+
+		for (String id : ids) {
+			JsonObject response = funder.readFunderById(id);
+
+			if (!response.has("MESSAGE")) {
+				readCount++;
+				resultArray.add(response);
+			}
+		}
+
+		if(readCount == elemCount) {
+			return new JsonResponseBuilder().getJsonArrayResponse("funders", resultArray, DBOpStatus.SUCCESSFUL, readCount + " Funders were retrieved successfully.").toString();
+		} else {
+			return new JsonResponseBuilder().getJsonArrayResponse("funders", resultArray, DBOpStatus.UNSUCCESSFUL, "Only " + readCount +" Funders were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Funders.").toString();
+		}
+	}
+
 	@POST
 	@Path("/funders")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -536,7 +687,6 @@ public class UserResource {
 			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
 		}
 	}
-
 
 	@PUT
 	@Path("/funders")
@@ -596,7 +746,6 @@ public class UserResource {
 		}
 	}
 
-
 	@DELETE
 	@Path("/funders")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -655,7 +804,6 @@ public class UserResource {
 		}
 	}
 
-
 	//Researcher End-points
 	@GET
 	@Path("/researchers")
@@ -666,6 +814,57 @@ public class UserResource {
 			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
 		return researcher.readResearchers().toString();
+	}
+
+	@GET
+	@Path("/researchers/{researcher_id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String readResearchers(@Context SecurityContext securityContext, @PathParam("researcher_id") String uri_researcher_id) {
+		// Authorize only ADMINs, RSCHRs
+		if(!(securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.RSCHR.toString()))) {
+			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+		}
+
+		// Get Current User's ID
+		String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
+
+		// Check if its a Single ID or Multiple IDs
+		if(!uri_researcher_id.contains(",")) {
+			// Allow retrieving only if the IDs are matched for NON ADMINs
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+				if (! uri_researcher_id.equals(current_user_id)){
+					return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to retrieve details of other Researcher.").toString();
+				}
+			}
+
+			return researcher.readResearcherById(uri_researcher_id).toString();
+		}
+
+		// Allow only ADMINs to retrieve multiple researchers at a time
+		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+			return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to retrieve multiple Researchers!").toString();
+		}
+
+		String[] ids = uri_researcher_id.split(",");
+
+		int readCount = 0;
+		int elemCount = ids.length;
+		JsonArray resultArray = new JsonArray();
+
+		for (String id : ids) {
+			JsonObject response = researcher.readResearcherById(id);
+
+			if (!response.has("MESSAGE")) {
+				readCount++;
+				resultArray.add(response);
+			}
+		}
+
+		if(readCount == elemCount) {
+			return new JsonResponseBuilder().getJsonArrayResponse("researchers", resultArray, DBOpStatus.SUCCESSFUL, readCount + " Researchers were retrieved successfully.").toString();
+		} else {
+			return new JsonResponseBuilder().getJsonArrayResponse("researchers", resultArray, DBOpStatus.UNSUCCESSFUL, "Only " + readCount +" Researchers were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Researchers.").toString();
+		}
 	}
 
 	@POST
@@ -846,6 +1045,11 @@ public class UserResource {
 	@Path("/consumers/{consumer_id}/payment-methods")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String readConPayMethods(@PathParam("consumer_id") String consumer_id, @Context SecurityContext securityContext) {
+		//verify user_type	
+		if(!new ValidationHandler().validateUserType(consumer_id, UserType.CNSMR)) {
+			return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.").toString();
+		}
+
 		// Authorize only ADMINs & RSCHRs
 		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FNMGR.toString()) || securityContext.isUserInRole(UserType.CNSMR.toString()) || securityContext.isUserInRole(ServiceType.PYT.toString()))) {
 			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
@@ -861,136 +1065,123 @@ public class UserResource {
 			}
 		}
 
-		return paymentMethod.readPaymentMethods(consumer_id, UserType.CNSMR).toString();
+		return paymentMethod.readPaymentMethods(consumer_id).toString();
 	}
-
-	// GETting multiple details as a POST Request with IDs in the PAYLOAD
-	@POST
-	@Path("/consumers/{consumer_id}/payment-methods")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public String readConPayMethod(@PathParam("consumer_id") String consumer_id, @QueryParam("limited") boolean limited, String paymentMethodJSON, @Context SecurityContext securityContext) {
-		// Authorize only ADMINs, CNSMRs, PYT Service, and FNMGRs
-		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FNMGR.toString()) || securityContext.isUserInRole(UserType.CNSMR.toString()) || securityContext.isUserInRole(ServiceType.PYT.toString()))) {
-			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
-		}
-
-		// Check Query Parameter
-		if(!limited) {
-			return new JsonResponseBuilder().getJsonErrorResponse("Invalid Request detected. Reading all Payment Method(s) of " + consumer_id + " aborted.").toString();
-		}
-
-		// Verify requested ID Pattern
-		if(!new ValidationHandler().validateUserType(consumer_id, UserType.CNSMR)) {
-			return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.").toString(); 
-		}
-
-		// Get Current User's ID
-		String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
-
-		// Prohibit CNSMRs from viewing other users' payment details
-		if(securityContext.isUserInRole(UserType.CNSMR.toString())) {
-			if(! current_user_id.equals(consumer_id)) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to view other users' payment details.").toString();
-			}
-		}
-
-		try {
-
-			JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
-
-			// Verify JSON Object's Validity
-			if(!paymentMethodJSON_parsed.has("payment_methods")) {
-				return (paymentMethod.readSpecificPaymentMethod(consumer_id, paymentMethodJSON_parsed.get("creditcard_no").getAsString())).toString();
-			} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
-				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
-			}
-
-			int readCount = 0;
-			int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
-			JsonArray resultArray = new JsonArray();
-
-			for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
-				JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
-				JsonObject response = (paymentMethod.readSpecificPaymentMethod(consumer_id, paymentMethodObj.get("creditcard_no").getAsString()));
-
-				if (!response.has("MESSAGE")) {
-					readCount++;
-					resultArray.add(response);
-				}
-			}
-
-			if(readCount == elemCount) {
-				return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.SUCCESSFUL, readCount + " Payment Methods were retrieved successfully.").toString();
-			} else {
-				return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.UNSUCCESSFUL, "Only " + readCount +" Payment Methods were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Payment Methods.").toString();
-			}
-
-		} catch (Exception ex){
-			System.out.println(ex.getMessage()); // Error Logging
-			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
-		}
-	}
-
 
 	@POST
 	@Path("/consumers/{consumer_id}/payment-methods")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertConPayMethod(@PathParam("consumer_id") String consumer_id, String paymentMethodJSON, @Context SecurityContext securityContext)
+	public String insertConPayMethod(@PathParam("consumer_id") String consumer_id, @QueryParam("retrieve") boolean isRetrieving, String paymentMethodJSON, @Context SecurityContext securityContext)
 	{
-		// Authorize only ADMINs & CNSMRs
-		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.CNSMR.toString()))) {
-			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
-		}
-
 		// Verify requested ID Pattern
 		if(!new ValidationHandler().validateUserType(consumer_id, UserType.CNSMR)) {
 			return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.").toString(); 
 		}
 
-		// Get Current User's ID
-		String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
-
-		// Prohibit CNSMRs from inserting other users' payment details
-		if(securityContext.isUserInRole(UserType.CNSMR.toString())) {
-			if(! current_user_id.equals(consumer_id)) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to add other users' payment details.").toString();
-			}
-		}
-
-		try {
-
-			JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
-
-			// Verify JSON Object's Validity
-			if(!paymentMethodJSON_parsed.has("payment_methods")) {
-				return (paymentMethod.insertPaymentMethod(consumer_id, paymentMethodJSON_parsed.get("creditcard_type").getAsString(), paymentMethodJSON_parsed.get("creditcard_no").getAsString(), paymentMethodJSON_parsed.get("creditcard_security_no").getAsString(), paymentMethodJSON_parsed.get("exp_date").getAsString(), paymentMethodJSON_parsed.get("billing_address").getAsString())).toString();
-			} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
-				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
+		// Check if a Insert or a secured Read
+		if(!isRetrieving) {
+			// Authorize only ADMINs & CNSMRs
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.CNSMR.toString()))) {
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 			}
 
-			int insertCount = 0;
-			int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+			// Get Current User's ID
+			String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
 
-			for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
-				JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
-				JsonObject response = (paymentMethod.insertPaymentMethod(consumer_id, paymentMethodObj.get("creditcard_type").getAsString(), paymentMethodObj.get("creditcard_no").getAsString(), paymentMethodObj.get("creditcard_security_no").getAsString(), paymentMethodObj.get("exp_date").getAsString(), paymentMethodObj.get("billing_address").getAsString()));
-
-				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
-					insertCount++;
+			// Prohibit CNSMRs from inserting other users' payment details
+			if(securityContext.isUserInRole(UserType.CNSMR.toString())) {
+				if(! current_user_id.equals(consumer_id)) {
+					return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to add other users' payment details.").toString();
 				}
 			}
 
-			if(insertCount == elemCount) {
-				return new JsonResponseBuilder().getJsonSuccessResponse(insertCount + " Payment Methods were inserted successfully.").toString();
-			} else {
-				return new JsonResponseBuilder().getJsonFailedResponse("Only " + insertCount +" Payment Methods were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Payment Methods.").toString();
+			try {
+
+				JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
+
+				// Verify JSON Object's Validity
+				if(!paymentMethodJSON_parsed.has("payment_methods")) {
+					return (paymentMethod.insertPaymentMethod(consumer_id, paymentMethodJSON_parsed.get("creditcard_type").getAsString(), paymentMethodJSON_parsed.get("creditcard_no").getAsString(), paymentMethodJSON_parsed.get("creditcard_security_no").getAsString(), paymentMethodJSON_parsed.get("exp_date").getAsString(), paymentMethodJSON_parsed.get("billing_address").getAsString())).toString();
+				} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
+					return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
+				}
+
+				int insertCount = 0;
+				int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+
+				for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
+					JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
+					JsonObject response = (paymentMethod.insertPaymentMethod(consumer_id, paymentMethodObj.get("creditcard_type").getAsString(), paymentMethodObj.get("creditcard_no").getAsString(), paymentMethodObj.get("creditcard_security_no").getAsString(), paymentMethodObj.get("exp_date").getAsString(), paymentMethodObj.get("billing_address").getAsString()));
+
+					if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+						insertCount++;
+					}
+				}
+
+				if(insertCount == elemCount) {
+					return new JsonResponseBuilder().getJsonSuccessResponse(insertCount + " Payment Methods were inserted successfully.").toString();
+				} else {
+					return new JsonResponseBuilder().getJsonFailedResponse("Only " + insertCount +" Payment Methods were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Payment Methods.").toString();
+				}
+
+			} catch (Exception ex){
+				System.out.println(ex.getMessage()); // Error Logging
+				return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
 			}
 
-		} catch (Exception ex){
-			System.out.println(ex.getMessage()); // Error Logging
-			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+		} else {
+			// If a secured read request;
+			// Authorize only ADMINs, CNSMRs, PYT Service, and FNMGRs
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FNMGR.toString()) || securityContext.isUserInRole(UserType.CNSMR.toString()) || securityContext.isUserInRole(ServiceType.PYT.toString()))) {
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+			}
+
+			// Get Current User's ID
+			String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
+
+			// Prohibit CNSMRs from viewing other users' payment details
+			if(securityContext.isUserInRole(UserType.CNSMR.toString())) {
+				if(! current_user_id.equals(consumer_id)) {
+					return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to view other users' payment details.").toString();
+				}
+			}
+
+			try {
+
+				JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
+
+				// Verify JSON Object's Validity
+				if(!paymentMethodJSON_parsed.has("payment_methods")) {
+					return (paymentMethod.readSpecificPaymentMethod(consumer_id, paymentMethodJSON_parsed.get("creditcard_no").getAsString())).toString();
+				} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
+					return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
+				}
+
+				int readCount = 0;
+				int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+				JsonArray resultArray = new JsonArray();
+
+				for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
+					JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
+					JsonObject response = (paymentMethod.readSpecificPaymentMethod(consumer_id, paymentMethodObj.get("creditcard_no").getAsString()));
+
+					if (!response.has("MESSAGE")) {
+						readCount++;
+						resultArray.add(response);
+					}
+				}
+
+				if(readCount == elemCount) {
+					return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.SUCCESSFUL, readCount + " Payment Methods were retrieved successfully.").toString();
+				} else {
+					return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.UNSUCCESSFUL, "Only " + readCount +" Payment Methods were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Payment Methods.").toString();
+				}
+
+			} catch (Exception ex){
+				System.out.println(ex.getMessage()); // Error Logging
+				return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+			}
 		}
 	}
 
@@ -1156,6 +1347,10 @@ public class UserResource {
 	@Path("/funders/{funder_id}/payment-methods")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String readFunPayMethods(@PathParam("funder_id") String funder_id, @Context SecurityContext securityContext) {
+		//verify user_type	
+		if(!new ValidationHandler().validateUserType(funder_id, UserType.FUNDR)) {
+			return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.").toString();
+		}
 
 		// Authorize only ADMINs, FNMGRs, FUNDRs, and FND Service
 		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FNMGR.toString())  || securityContext.isUserInRole(UserType.FUNDR.toString()) || securityContext.isUserInRole(ServiceType.FND.toString()))) {
@@ -1173,75 +1368,7 @@ public class UserResource {
 			}
 		}
 
-		return paymentMethod.readPaymentMethods(funder_id, UserType.FUNDR).toString();
-	}
-
-	//GETting multiple details as a POST Request with IDs in the PAYLOAD
-	@POST
-	@Path("/funders/{funder_id}/payment-methods")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public String readFunPayMethod(@PathParam("funder_id") String funder_id, @QueryParam("limited") boolean limited, String paymentMethodJSON, @Context SecurityContext securityContext) {
-		// Authorize only ADMINs, FNMGRs, FUNDRs, and FND Service
-		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FNMGR.toString())  || securityContext.isUserInRole(UserType.FUNDR.toString()) || securityContext.isUserInRole(ServiceType.FND.toString()))) {
-			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
-		}
-
-		// Check Query Parameter
-		if(!limited) {
-			return new JsonResponseBuilder().getJsonErrorResponse("Invalid Request detected. Reading all Payment Method(s) of " + funder_id + " aborted.").toString();
-		}
-
-		// Verify requested ID Pattern
-		if(!new ValidationHandler().validateUserType(funder_id, UserType.FUNDR)) {
-			return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.").toString(); 
-		}
-
-		// Get Current User's ID
-		String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
-
-		// Prohibit CNSMRs from viewing other users' payment details
-		if(securityContext.isUserInRole(UserType.FUNDR.toString())) {
-			if(! current_user_id.equals(funder_id)) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to view other users' payment details.").toString();
-			}
-		}
-
-		try {
-
-			JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
-
-			// Verify JSON Object's Validity
-			if(!paymentMethodJSON_parsed.has("payment_methods")) {
-				return (paymentMethod.readSpecificPaymentMethod(funder_id, paymentMethodJSON_parsed.get("creditcard_no").getAsString())).toString();
-			} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
-				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
-			}
-
-			int readCount = 0;
-			int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
-			JsonArray resultArray = new JsonArray();
-
-			for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
-				JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
-				JsonObject response = (paymentMethod.readSpecificPaymentMethod(funder_id, paymentMethodObj.get("creditcard_no").getAsString()));
-
-				if (!response.has("MESSAGE")) {
-					readCount++;
-					resultArray.add(response);
-				}
-			}
-
-			if(readCount == elemCount) {
-				return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.SUCCESSFUL, readCount + " Payment Methods of " + funder_id + " were retrieved successfully.").toString();
-			} else {
-				return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.UNSUCCESSFUL, "Only " + readCount +" Payment Methods were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Payment Methods of " + funder_id + ".").toString();
-			}
-
-		} catch (Exception ex){
-			System.out.println(ex.getMessage()); // Error Logging
-			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
-		}
+		return paymentMethod.readPaymentMethods(funder_id).toString();
 	}
 
 
@@ -1249,61 +1376,113 @@ public class UserResource {
 	@Path("/funders/{funder_id}/payment-methods")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertFunPayMethod(@PathParam("funder_id") String funder_id, String paymentMethodJSON, @Context SecurityContext securityContext) {
-		// Authorize only ADMINs & FUNDRs
-		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FUNDR.toString()))) {
-			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
-		}
-
+	public String insertFunPayMethod(@PathParam("funder_id") String funder_id, String paymentMethodJSON, @Context SecurityContext securityContext, @QueryParam("retrieve") boolean isRetrieving) {
 		// Verify requested ID Pattern
 		if(!new ValidationHandler().validateUserType(funder_id, UserType.FUNDR)) {
 			return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.").toString(); 
 		}
 
-		// Get Current User's ID
-		String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
-
-		// Prohibit CNSMRs from inserting other users' payment details
-		if(securityContext.isUserInRole(UserType.FUNDR.toString())) {
-			if(! current_user_id.equals(funder_id)) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to add other users' payment details.").toString();
-			}
-		}
-
-		try {
-
-			JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
-
-			// Verify JSON Object's Validity
-			if(!paymentMethodJSON_parsed.has("payment_methods")) {
-				return (paymentMethod.insertPaymentMethod(funder_id, paymentMethodJSON_parsed.get("creditcard_type").getAsString(), paymentMethodJSON_parsed.get("creditcard_no").getAsString(), paymentMethodJSON_parsed.get("creditcard_security_no").getAsString(), paymentMethodJSON_parsed.get("exp_date").getAsString(), paymentMethodJSON_parsed.get("billing_address").getAsString())).toString();
-			} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
-				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
+		if(!isRetrieving) {
+			// Authorize only ADMINs & FUNDRs
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FUNDR.toString()))) {
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 			}
 
-			int insertCount = 0;
-			int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+			// Get Current User's ID
+			String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
 
-			for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
-				JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
-				JsonObject response = (paymentMethod.insertPaymentMethod(funder_id, paymentMethodObj.get("creditcard_type").getAsString(), paymentMethodObj.get("creditcard_no").getAsString(), paymentMethodObj.get("creditcard_security_no").getAsString(), paymentMethodObj.get("exp_date").getAsString(), paymentMethodObj.get("billing_address").getAsString()));
-
-				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
-					insertCount++;
+			// Prohibit CNSMRs from inserting other users' payment details
+			if(securityContext.isUserInRole(UserType.FUNDR.toString())) {
+				if(! current_user_id.equals(funder_id)) {
+					return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to add other users' payment details.").toString();
 				}
 			}
 
-			if(insertCount == elemCount) {
-				return new JsonResponseBuilder().getJsonSuccessResponse(insertCount + " Payment Methods of "+ funder_id +" were inserted successfully.").toString();
-			} else {
-				return new JsonResponseBuilder().getJsonFailedResponse("Only " + insertCount +" Payment Methods were Inserted. Inserting failed for "+ (elemCount-insertCount) + " given Payment Methods of " + funder_id + ".").toString();
+			try {
+
+				JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
+
+				// Verify JSON Object's Validity
+				if(!paymentMethodJSON_parsed.has("payment_methods")) {
+					return (paymentMethod.insertPaymentMethod(funder_id, paymentMethodJSON_parsed.get("creditcard_type").getAsString(), paymentMethodJSON_parsed.get("creditcard_no").getAsString(), paymentMethodJSON_parsed.get("creditcard_security_no").getAsString(), paymentMethodJSON_parsed.get("exp_date").getAsString(), paymentMethodJSON_parsed.get("billing_address").getAsString())).toString();
+				} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
+					return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
+				}
+
+				int insertCount = 0;
+				int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+
+				for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
+					JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
+					JsonObject response = (paymentMethod.insertPaymentMethod(funder_id, paymentMethodObj.get("creditcard_type").getAsString(), paymentMethodObj.get("creditcard_no").getAsString(), paymentMethodObj.get("creditcard_security_no").getAsString(), paymentMethodObj.get("exp_date").getAsString(), paymentMethodObj.get("billing_address").getAsString()));
+
+					if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+						insertCount++;
+					}
+				}
+
+				if(insertCount == elemCount) {
+					return new JsonResponseBuilder().getJsonSuccessResponse(insertCount + " Payment Methods of "+ funder_id +" were inserted successfully.").toString();
+				} else {
+					return new JsonResponseBuilder().getJsonFailedResponse("Only " + insertCount +" Payment Methods were Inserted. Inserting failed for "+ (elemCount-insertCount) + " given Payment Methods of " + funder_id + ".").toString();
+				}
+
+			} catch (Exception ex){
+				System.out.println(ex.getMessage()); // Error Logging
+				return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+			}
+		} else {
+			// Authorize only ADMINs, FNMGRs, FUNDRs, and FND Service
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FNMGR.toString())  || securityContext.isUserInRole(UserType.FUNDR.toString()) || securityContext.isUserInRole(ServiceType.FND.toString()))) {
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 			}
 
-		} catch (Exception ex){
-			System.out.println(ex.getMessage()); // Error Logging
-			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
-		}
+			// Get Current User's ID
+			String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
 
+			// Prohibit CNSMRs from viewing other users' payment details
+			if(securityContext.isUserInRole(UserType.FUNDR.toString())) {
+				if(! current_user_id.equals(funder_id)) {
+					return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to view other users' payment details.").toString();
+				}
+			}
+
+			try {
+
+				JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
+
+				// Verify JSON Object's Validity
+				if(!paymentMethodJSON_parsed.has("payment_methods")) {
+					return (paymentMethod.readSpecificPaymentMethod(funder_id, paymentMethodJSON_parsed.get("creditcard_no").getAsString())).toString();
+				} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
+					return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
+				}
+
+				int readCount = 0;
+				int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+				JsonArray resultArray = new JsonArray();
+
+				for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
+					JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
+					JsonObject response = (paymentMethod.readSpecificPaymentMethod(funder_id, paymentMethodObj.get("creditcard_no").getAsString()));
+
+					if (!response.has("MESSAGE")) {
+						readCount++;
+						resultArray.add(response);
+					}
+				}
+
+				if(readCount == elemCount) {
+					return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.SUCCESSFUL, readCount + " Payment Methods of " + funder_id + " were retrieved successfully.").toString();
+				} else {
+					return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.UNSUCCESSFUL, "Only " + readCount +" Payment Methods were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Payment Methods of " + funder_id + ".").toString();
+				}
+
+			} catch (Exception ex){
+				System.out.println(ex.getMessage()); // Error Logging
+				return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+			}
+		}
 	}
 
 
@@ -1469,6 +1648,11 @@ public class UserResource {
 	@Path("/researchers/{researcher_id}/payment-methods")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String readResPayMethods(@PathParam("researcher_id") String researcher_id, @Context SecurityContext securityContext) {
+		// Verify requested ID Pattern
+		if(!new ValidationHandler().validateUserType(researcher_id, UserType.RSCHR)) {
+			return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.").toString(); 
+		}
+
 		// Authorize only ADMINs, RSCHRs, PYT Service, and FND Service
 		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FNMGR.toString()) || securityContext.isUserInRole(UserType.RSCHR.toString()) || securityContext.isUserInRole(ServiceType.PYT.toString()) || securityContext.isUserInRole(ServiceType.FND.toString()))) {
 			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
@@ -1484,135 +1668,119 @@ public class UserResource {
 			}
 		}
 
-		return paymentMethod.readPaymentMethods(researcher_id, UserType.RSCHR).toString();
+		return paymentMethod.readPaymentMethods(researcher_id).toString();
 	}
-
-	// GETting multiple details as a POST Request with IDs in the PAYLOAD
-	@POST
-	@Path("/researchers/{researcher_id}/payment-methods")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public String readResPayMethod(@PathParam("researcher_id") String researcher_id, @QueryParam("limited") boolean limited, String paymentMethodJSON, @Context SecurityContext securityContext) {
-		// Authorize only ADMINs, RSCHRs, PYT Service, and FND Service
-		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FNMGR.toString()) || securityContext.isUserInRole(UserType.RSCHR.toString()) || securityContext.isUserInRole(ServiceType.PYT.toString()) || securityContext.isUserInRole(ServiceType.FND.toString()))) {
-			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
-		}
-		
-		// Check Query Parameter
-		if(!limited) {
-			return new JsonResponseBuilder().getJsonErrorResponse("Invalid Request detected. Reading all Payment Method(s) of " + researcher_id + " aborted.").toString();
-		}
-
-		// Verify requested ID Pattern
-		if(!new ValidationHandler().validateUserType(researcher_id, UserType.RSCHR)) {
-			return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.").toString(); 
-		}
-		
-		// Get Current User's ID
-		String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
-
-		// Prohibit RSCHRs from viewing other users' payment details
-		if(securityContext.isUserInRole(UserType.RSCHR.toString())) {
-			if(! current_user_id.equals(researcher_id)) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to view other users' payment details.").toString();
-			}
-		}
-
-		try {
-
-			JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
-
-			// Verify JSON Object's Validity
-			if(!paymentMethodJSON_parsed.has("payment_methods")) {
-				return (paymentMethod.readSpecificPaymentMethod(researcher_id, paymentMethodJSON_parsed.get("creditcard_no").getAsString())).toString();
-			} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
-				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
-			}
-
-			int readCount = 0;
-			int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
-			JsonArray resultArray = new JsonArray();
-
-			for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
-				JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
-				JsonObject response = (paymentMethod.readSpecificPaymentMethod(researcher_id, paymentMethodObj.get("creditcard_no").getAsString()));
-
-				if (!response.has("MESSAGE")) {
-					readCount++;
-					resultArray.add(response);
-				}
-			}
-			
-			if(readCount == elemCount) {
-				return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.SUCCESSFUL, readCount + " Payment Methods of " + researcher_id + " were retrieved successfully.").toString();
-			} else {
-				return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.UNSUCCESSFUL, "Only " + readCount +" Payment Methods were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Payment Methods of " + researcher_id + ".").toString();
-			}
-
-		} catch (Exception ex){
-			System.out.println(ex.getMessage()); // Error Logging
-			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
-		}
-	}
-
 
 	@POST
 	@Path("/researchers/{researcher_id}/payment-methods")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String insertResPayMethod(@PathParam("researcher_id") String researcher_id, String paymentMethodJSON, @Context SecurityContext securityContext) {
+	public String insertResPayMethod(@PathParam("researcher_id") String researcher_id, String paymentMethodJSON, @QueryParam("retrieve") boolean isRetrieving, @Context SecurityContext securityContext) {
 		// Verify requested ID Pattern
 		if(!new ValidationHandler().validateUserType(researcher_id, UserType.RSCHR)) {
 			return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.").toString(); 
 		}
 
-		// Authorize only ADMINs & RSCHRs
-		if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.RSCHR.toString()))) {
-			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
-		}
-
-		// Get Current User's ID
-		String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
-
-		// Prohibit FUNDRs from inserting other users' payment details
-		if(securityContext.isUserInRole(UserType.RSCHR.toString())) {
-			if(! current_user_id.equals(researcher_id)) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to add other users' payment details.").toString();
-			}
-		}
-
-		try {
-
-			JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
-
-			// Verify JSON Object's Validity
-			if(!paymentMethodJSON_parsed.has("payment_methods")) {
-				return (paymentMethod.insertPaymentMethod(researcher_id, paymentMethodJSON_parsed.get("creditcard_type").getAsString(), paymentMethodJSON_parsed.get("creditcard_no").getAsString(), paymentMethodJSON_parsed.get("creditcard_security_no").getAsString(), paymentMethodJSON_parsed.get("exp_date").getAsString(), paymentMethodJSON_parsed.get("billing_address").getAsString())).toString();
-			} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
-				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
+		if(!isRetrieving) {
+			// Authorize only ADMINs & RSCHRs
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.RSCHR.toString()))) {
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 			}
 
-			int insertCount = 0;
-			int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+			// Get Current User's ID
+			String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
 
-			for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
-				JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
-				JsonObject response = (paymentMethod.insertPaymentMethod(researcher_id, paymentMethodObj.get("creditcard_type").getAsString(), paymentMethodObj.get("creditcard_no").getAsString(), paymentMethodObj.get("creditcard_security_no").getAsString(), paymentMethodObj.get("exp_date").getAsString(), paymentMethodObj.get("billing_address").getAsString()));
-
-				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
-					insertCount++;
+			// Prohibit FUNDRs from inserting other users' payment details
+			if(securityContext.isUserInRole(UserType.RSCHR.toString())) {
+				if(! current_user_id.equals(researcher_id)) {
+					return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to add other users' payment details.").toString();
 				}
 			}
 
-			if(insertCount == elemCount) {
-				return new JsonResponseBuilder().getJsonSuccessResponse(insertCount + " Payment Methods of "+ researcher_id +" were inserted successfully.").toString();
-			} else {
-				return new JsonResponseBuilder().getJsonFailedResponse("Only " + insertCount +" Payment Methods were Inserted. Inserting failed for "+ (elemCount-insertCount) + " given Payment Methods of " + researcher_id + ".").toString();
+			try {
+
+				JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
+
+				// Verify JSON Object's Validity
+				if(!paymentMethodJSON_parsed.has("payment_methods")) {
+					return (paymentMethod.insertPaymentMethod(researcher_id, paymentMethodJSON_parsed.get("creditcard_type").getAsString(), paymentMethodJSON_parsed.get("creditcard_no").getAsString(), paymentMethodJSON_parsed.get("creditcard_security_no").getAsString(), paymentMethodJSON_parsed.get("exp_date").getAsString(), paymentMethodJSON_parsed.get("billing_address").getAsString())).toString();
+				} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
+					return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
+				}
+
+				int insertCount = 0;
+				int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+
+				for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
+					JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
+					JsonObject response = (paymentMethod.insertPaymentMethod(researcher_id, paymentMethodObj.get("creditcard_type").getAsString(), paymentMethodObj.get("creditcard_no").getAsString(), paymentMethodObj.get("creditcard_security_no").getAsString(), paymentMethodObj.get("exp_date").getAsString(), paymentMethodObj.get("billing_address").getAsString()));
+
+					if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
+						insertCount++;
+					}
+				}
+
+				if(insertCount == elemCount) {
+					return new JsonResponseBuilder().getJsonSuccessResponse(insertCount + " Payment Methods of "+ researcher_id +" were inserted successfully.").toString();
+				} else {
+					return new JsonResponseBuilder().getJsonFailedResponse("Only " + insertCount +" Payment Methods were Inserted. Inserting failed for "+ (elemCount-insertCount) + " given Payment Methods of " + researcher_id + ".").toString();
+				}
+
+			} catch (Exception ex){
+				System.out.println(ex.getMessage()); // Error Logging
+				return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+			}
+		} else {
+			// Authorize only ADMINs, RSCHRs, PYT Service, and FND Service
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()) || securityContext.isUserInRole(UserType.FNMGR.toString()) || securityContext.isUserInRole(UserType.RSCHR.toString()) || securityContext.isUserInRole(ServiceType.PYT.toString()) || securityContext.isUserInRole(ServiceType.FND.toString()))) {
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 			}
 
-		} catch (Exception ex){
-			System.out.println(ex.getMessage()); // Error Logging
-			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+			// Get Current User's ID
+			String current_user_id = securityContext.getUserPrincipal().getName().split(";")[1];
+
+			// Prohibit RSCHRs from viewing other users' payment details
+			if(securityContext.isUserInRole(UserType.RSCHR.toString())) {
+				if(! current_user_id.equals(researcher_id)) {
+					return new JsonResponseBuilder().getJsonProhibitedResponse("You are NOT Allowed to view other users' payment details.").toString();
+				}
+			}
+
+			try {
+
+				JsonObject paymentMethodJSON_parsed = new JsonParser().parse(paymentMethodJSON).getAsJsonObject();
+
+				// Verify JSON Object's Validity
+				if(!paymentMethodJSON_parsed.has("payment_methods")) {
+					return (paymentMethod.readSpecificPaymentMethod(researcher_id, paymentMethodJSON_parsed.get("creditcard_no").getAsString())).toString();
+				} else if (!paymentMethodJSON_parsed.get("payment_methods").isJsonArray()) {
+					return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
+				}
+
+				int readCount = 0;
+				int elemCount = paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray().size();
+				JsonArray resultArray = new JsonArray();
+
+				for (JsonElement jsonElem : paymentMethodJSON_parsed.get("payment_methods").getAsJsonArray()) {
+					JsonObject paymentMethodObj = jsonElem.getAsJsonObject();
+					JsonObject response = (paymentMethod.readSpecificPaymentMethod(researcher_id, paymentMethodObj.get("creditcard_no").getAsString()));
+
+					if (!response.has("MESSAGE")) {
+						readCount++;
+						resultArray.add(response);
+					}
+				}
+
+				if(readCount == elemCount) {
+					return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.SUCCESSFUL, readCount + " Payment Methods of " + researcher_id + " were retrieved successfully.").toString();
+				} else {
+					return new JsonResponseBuilder().getJsonArrayResponse("payment-methods", resultArray, DBOpStatus.UNSUCCESSFUL, "Only " + readCount +" Payment Methods were retrieved. Retrieving failed for "+ (elemCount-readCount) + " Payment Methods of " + researcher_id + ".").toString();
+				}
+
+			} catch (Exception ex){
+				System.out.println(ex.getMessage()); // Error Logging
+				return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+			}
 		}
 	}
 

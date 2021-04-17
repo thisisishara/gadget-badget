@@ -2,11 +2,14 @@ package com.gadgetbadget.user.model;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Types;
 
 import com.gadgetbadget.user.util.JsonResponseBuilder;
+import com.gadgetbadget.user.util.UserType;
+import com.gadgetbadget.user.util.ValidationHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -76,7 +79,7 @@ public class Employee extends User{
 			ResultSet rs = stmt.executeQuery(query);
 
 			if(!rs.isBeforeFirst()) {
-				return new JsonResponseBuilder().getJsonSuccessResponse("Request Processed. No employees found.");
+				return new JsonResponseBuilder().getJsonFailedResponse("Request Processed. No employees found.");
 			}
 
 			while (rs.next())
@@ -108,6 +111,56 @@ public class Employee extends User{
 		return result;
 	}
 
+	//Read Employee By Id
+	public JsonObject readEmployeeById(String employee_id) {
+		JsonObject result = null;
+		try
+		{			
+			// Verify requested ID Pattern
+			if(!(new ValidationHandler().validateUserType(employee_id, UserType.EMPLY) || new ValidationHandler().validateUserType(employee_id, UserType.FNMGR) || new ValidationHandler().validateUserType(employee_id, UserType.ADMIN))) {
+				return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format."); 
+			}
+			
+			Connection conn = getConnection();
+			if (conn == null) {
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
+			}
+
+			String query = "SELECT u.user_id, u.first_name, u.last_name, u.gender, u.primary_email, u.primary_phone, e.gb_employee_id, u.role_id, e.department, e.date_hired FROM `user` u, `employee` e WHERE u.user_id=e.employee_id AND u.user_id = ?";
+			PreparedStatement preparedStmt = conn.prepareStatement(query);
+			
+			preparedStmt.setString(1, employee_id);
+			ResultSet rs = preparedStmt.executeQuery();
+
+			if(!rs.isBeforeFirst()) {
+				return new JsonResponseBuilder().getJsonFailedResponse("Request Processed. Employee not found.");
+			}
+
+			while (rs.next())
+			{
+				JsonObject recordObject = new JsonObject();
+				recordObject.addProperty("user_id", rs.getString("user_id"));
+				recordObject.addProperty("role_id", rs.getString("role_id"));
+				recordObject.addProperty("first_name", rs.getString("first_name"));
+				recordObject.addProperty("last_name", rs.getString("last_name"));
+				recordObject.addProperty("gender", rs.getString("gender"));
+				recordObject.addProperty("primary_email", rs.getString("primary_email"));
+				recordObject.addProperty("primary_phone", rs.getString("primary_phone"));
+				recordObject.addProperty("gb_employee_id", rs.getString("gb_employee_id"));
+				recordObject.addProperty("department", rs.getString("department"));
+				recordObject.addProperty("date_hired", rs.getString("date_hired"));
+				result = recordObject;
+			}
+			conn.close();
+			return result;
+
+		}
+		catch (Exception ex)
+		{
+			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while reading employee. Exception Details:" + ex.getMessage());
+		}
+	}
 
 	//Update Employee
 	public JsonObject updateEmployee(String user_id,String username, String password, String first_name, String last_name, String gender, String primary_email, String primary_phone, String gb_employee_id, String department, String date_hired)
@@ -151,7 +204,6 @@ public class Employee extends User{
 			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while updating Employee " + user_id +". Exception Details:" + ex.getMessage());
 		}
 	}
-
 
 	//Delete Employee
 	public JsonObject deleteEmployee(String user_id) {

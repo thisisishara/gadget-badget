@@ -3,7 +3,9 @@ package com.gadgetbadget.user.model;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+
 import com.gadgetbadget.user.util.DBHandler;
+import com.gadgetbadget.user.util.HttpMethod;
 import com.gadgetbadget.user.util.InterServiceCommHandler;
 import com.gadgetbadget.user.util.JsonResponseBuilder;
 import com.gadgetbadget.user.util.UserType;
@@ -29,7 +31,6 @@ public class User extends DBHandler {
 	 */
 	public JsonObject getUserById(String username, String password) {
 		JsonObject result = null;
-
 		try
 		{
 			Connection conn = getConnection();
@@ -75,7 +76,7 @@ public class User extends DBHandler {
 	 * @return	a JSON object which has the user account details and statistics obtained by other services as JSON
 	 * 			objects within the wrapper JSON object.
 	 */
-	public JsonObject getUserAccountStatistics() {
+	public JsonObject getUsers(boolean isSummarized) {
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();
 
@@ -113,42 +114,59 @@ public class User extends DBHandler {
 			conn.close();
 
 			result = new JsonObject();
-			result.add("user-stats", resultArray);
-			//get payment info
+			
+			if(!isSummarized) {
+				result.add("users", resultArray);
+			} else {
+				result.add("user_stats", resultArray);
+				
+				//obtain statistics through service-to-service communication
+				//consumer - payments
+				for(JsonElement jsonElem : result.get("user_stats").getAsJsonArray()) {
+					String user_id = jsonElem.getAsJsonObject().get("user_id").getAsString();
+					String role_id = jsonElem.getAsJsonObject().get("role").getAsString();
 
-			//obtain statistics through service-to-service communication
-			//payments-consumer
-			for(JsonElement jsonElem : result.get("user-stats").getAsJsonArray()) {
-				String user_id = jsonElem.getAsJsonObject().get("user_id").getAsString();
-				String role_id = jsonElem.getAsJsonObject().get("role").getAsString();
-
-				if(role_id.equalsIgnoreCase(UserType.CNSMR.toString())){
-					JsonObject interRes = new InterServiceCommHandler().paymentIntercomms("payments?consumerid=" + user_id + "&summarized=true");
-					if(interRes.entrySet().size() >2) {
-						jsonElem.getAsJsonObject().add("payment-stats", interRes);
-					} else {
-						jsonElem.getAsJsonObject().addProperty("payment-stats", "NOT FOUND");
+					if(role_id.equalsIgnoreCase(UserType.CNSMR.toString())){
+						JsonObject interRes = new InterServiceCommHandler().paymentIntercomms("payments?consumerid=" + user_id + "&summarized=true", HttpMethod.GET, null);
+						if(interRes.entrySet().size() >2) {
+							jsonElem.getAsJsonObject().add("payment_stats", interRes);
+						} else {
+							jsonElem.getAsJsonObject().addProperty("payment_stats", "NOT FOUND");
+						}
 					}
+					
+					if(role_id.equalsIgnoreCase(UserType.FUNDR.toString())){
+						JsonObject interRes = new InterServiceCommHandler().fundingIntercomms("funds?funderid=" + user_id + "&summarized=true", HttpMethod.GET, null);
+						if(interRes.entrySet().size() >2) {
+							jsonElem.getAsJsonObject().add("funding_stats", interRes);
+						} else {
+							jsonElem.getAsJsonObject().addProperty("funding_stats", "NOT FOUND");
+						}
+					}
+					
+					/*
+					if(role_id.equalsIgnoreCase(UserType.RSCHR.toString())){
+						JsonObject interRes = null;
+						interRes = new InterServiceCommHandler().researchHubIntercomms("researchprojects?researcherid=" + user_id + "&summarized=true", HttpMethod.GET, null);
+						if(interRes.entrySet().size() >2) {
+							jsonElem.getAsJsonObject().add("research_stats", interRes);
+						} else {
+							jsonElem.getAsJsonObject().addProperty("research_stats", "NOT FOUND");
+						}
+						
+						interRes = new InterServiceCommHandler().marketplaceIntercomms("products?researcherid=" + user_id + "&summarized=true", HttpMethod.GET, null);
+						if(interRes.entrySet().size() >2) {
+							jsonElem.getAsJsonObject().add("products_stats", interRes);
+						} else {
+							jsonElem.getAsJsonObject().addProperty("products_stats", "NOT FOUND");
+						}
+					}*/
 				}
-			}
-			//payments-researcher
-			
-			//researchHub-researcher
-			
-			//researchHub-funder
-			
-			//products-consumer
-			
-			//products-researcher
-			
-			//funds-funder
-			
-			//funds-researcher
-			
+			}						
 		}
 		catch (Exception ex)
 		{
-			result = new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while authenticating the user. Exception Details:" + ex.getMessage());
+			result = new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while retrieving user statistics. Exception Details:" + ex.getMessage());
 			System.err.println(ex.getMessage());
 		}
 		return result;

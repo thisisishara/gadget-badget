@@ -53,17 +53,12 @@ public class PaymentMethod extends DBHandler{
 	}
 
 	//Read PaymentMethods
-	public JsonObject readPaymentMethods(String user_id, UserType user_type) {
+	public JsonObject readPaymentMethods(String user_id) {
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();
 
 		try
 		{
-			//verify user_type	
-			if(!new ValidationHandler().validateUserType(user_id, user_type)) {
-				return new JsonResponseBuilder().getJsonErrorResponse("Invalid User ID Format.");
-			}			
-
 			Connection conn = getConnection();
 			if (conn == null) {
 				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
@@ -76,7 +71,7 @@ public class PaymentMethod extends DBHandler{
 			ResultSet rs = preparedStmt.executeQuery();
 
 			if(!rs.isBeforeFirst()) {
-				return new JsonResponseBuilder().getJsonSuccessResponse("Request Processed. No Payment Method found for user " + user_id + ".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Request Processed. No Payment Method found for user " + user_id + ".");
 			}
 
 			while (rs.next())
@@ -123,7 +118,7 @@ public class PaymentMethod extends DBHandler{
 			ResultSet rs = preparedStmt.executeQuery();
 
 			if(!rs.isBeforeFirst()) {
-				return new JsonResponseBuilder().getJsonSuccessResponse("Request Processed. No Payment Method found under " + creditcard_no + " for user " + user_id + ".");
+				return new JsonResponseBuilder().getJsonFailedResponse("Request Processed. No Payment Method found under " + creditcard_no + " for user " + user_id + ".");
 			}
 
 			if (rs.next())
