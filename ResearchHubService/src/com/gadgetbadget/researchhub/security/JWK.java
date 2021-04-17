@@ -9,7 +9,7 @@ import java.security.PublicKey;
  * save and retrieve JWK data to and from the Local Database in each Web Service. JWK
  * data is configured beforehand manually. 
  * 
- * @author Ishara_Dissanayake
+ * 
  */
 public class JWK {
 	private String key_id;

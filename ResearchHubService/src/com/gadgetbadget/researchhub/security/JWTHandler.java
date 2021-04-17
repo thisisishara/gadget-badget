@@ -29,7 +29,7 @@ import com.google.gson.JsonParser;
  * This class only contains a subset of the methods in the original class
  * which helps to decode and verify User and Service JWT Authorization Tokens.
  * 
- * @author Ishara_Dissanayake
+ *
  */
 public class JWTHandler extends DBHandler{
 	public boolean validateServiceToken(String jwt) throws MalformedClaimException, JoseException {

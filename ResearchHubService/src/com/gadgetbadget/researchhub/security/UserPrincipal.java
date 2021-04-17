@@ -7,7 +7,7 @@ import java.security.Principal;
  * and used to inject JWT PAYLOAD data to security context of the authenticated user for
  * user/service role authorization process through RoleSecurityContext.java class.
  * 
- * @author Ishara_Dissanayake
+ * 
  */
 public class UserPrincipal implements Principal{
 	private String userdata;

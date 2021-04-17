@@ -23,7 +23,7 @@ import com.sun.jersey.spi.container.ContainerRequestFilter;
 /**
  * This is a variant of the original AuthorizationFilter class implemented in UserService.
  * 
- * @author Ishara_Dissanayake
+ * 
  * @version 2.0.1
  */
 @Provider
