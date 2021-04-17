@@ -506,7 +506,7 @@ public class ResearchprojectService {
 
 				for (JsonElement collaboratorElem : collaboratorJSON_parsed.get("collaborators").getAsJsonArray()) {
 					JsonObject collaboratorObj = collaboratorElem.getAsJsonObject();
-					JsonObject response = (collaborator.deleteCollaborator(collaboratorObj.get("project_id").getAsString(),collaboratorObj.get("full_name").getAsString()));
+					JsonObject response = (collaborator.deleteCollaborator(collaboratorObj.get("project_id").getAsString(),collaboratorObj.get("full_namec").getAsString()));
 
 					if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
 						insertCount++;

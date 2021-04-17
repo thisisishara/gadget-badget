@@ -8,7 +8,7 @@ public class DBHandler {
 	private static String port = "3306";
 	private static String database = "gadgetbadget_researchhub";
 	private static String username = "root";
-	private static String password = "123sanduni";
+	private static String password = "";
 	private Connection conn = null;
 	
 	public Connection getConnection()
