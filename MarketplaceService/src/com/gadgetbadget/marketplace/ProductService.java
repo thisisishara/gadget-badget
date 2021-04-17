@@ -28,6 +28,7 @@ public class ProductService {
 		return productCategory.readAllProductCategory().toString();
 	}
 	
+	
 	@POST
 	@Path("/product-categories")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -190,41 +191,6 @@ public class ProductService {
 			result.addProperty("MESSAGE", "Exception Details: " + e.getMessage());
 		}
 
-		return result.toString();
-	}
-	
-	@GET
-	@Path("/product-categories")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public String readProductCategory(String productCategoryJSON) {
-		
-		JsonObject result = null;
-		
-		try {
-			
-			JsonObject productCategoryJSON_parsed = new JsonParser().parse(productCategoryJSON).getAsJsonObject();
-			
-			//check if multiple inserts
-			if(!productCategoryJSON_parsed.has("product-categories")) {
-				return (productCategory.readProductCategory(productCategoryJSON_parsed.get("category_id").getAsString())).toString();
-			
-			} else if (!productCategoryJSON_parsed.get("product-categories").isJsonArray()) {
-				result = new JsonObject();
-				result.addProperty("STATUS", "ERROR");
-				result.addProperty("MESSAGE","Invalid JSON Object.");
-				return result.toString();
-			}
-			
-			//show product category selected product category
-			return (productCategory.readProductCategory(productCategoryJSON_parsed.get("category_id").getAsString())).toString();
-		}
-		catch (Exception e) {
-			result = new JsonObject();
-			result.addProperty("STATUS", "EXCEPTION");
-			result.addProperty("MESSAGE", "Exception Details: " + e.getMessage());
-		}
-		
 		return result.toString();
 	}
 }
