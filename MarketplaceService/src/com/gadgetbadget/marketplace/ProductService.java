@@ -329,4 +329,59 @@ public class ProductService {
 	
 			return result.toString();
 		}
+		
+		//delete method
+		@DELETE
+		@Path("/products")
+		@Consumes(MediaType.APPLICATION_JSON)
+		@Produces(MediaType.APPLICATION_JSON)
+		public String deleteProduct(String productCategoryJSON)
+		{
+			JsonObject result = null;
+	
+			try {
+	
+				JsonObject productCategoryJSON_parsed = new JsonParser().parse(productCategoryJSON).getAsJsonObject();
+	
+				//check if multiple inserts
+				if(!productCategoryJSON_parsed.has("products")) {
+					return (product.deleteProduct(productCategoryJSON_parsed.get("product_id").getAsString())).toString();
+				
+				} else if (!productCategoryJSON_parsed.get("products").isJsonArray()) {
+					result = new JsonObject();
+					result.addProperty("STATUS", "ERROR");
+					result.addProperty("MESSAGE","Invalid JSON Object.");
+					return result.toString();
+				}
+	
+				int insertCount = 0;
+				int elemCount = productCategoryJSON_parsed.get("products").getAsJsonArray().size();
+	
+				for (JsonElement productCategoryElem : productCategoryJSON_parsed.get("products").getAsJsonArray()) {
+					JsonObject productCategoryObj = productCategoryElem.getAsJsonObject();
+					JsonObject response = (product.deleteProduct(productCategoryObj.get("product_id").getAsString()));
+	
+					if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
+						insertCount++;
+					}
+				}
+	
+				result = new JsonObject();
+				if(insertCount == elemCount) {
+					result.addProperty("STATUS","SUCCESSFUL");
+					result.addProperty("MESSAGE", insertCount + " products were deleted successfully.");
+				} else {
+					result.addProperty("STATUS", "UNSUCCESSFUL");
+					result.addProperty("MESSAGE", "Only " + insertCount +" products were deleted. Deleting failed for "+ (elemCount-insertCount) + "products.");
+				}
+	
+			} catch (Exception e){
+				result = new JsonObject();
+				result.addProperty("STATUS", "EXCEPTION");
+				result.addProperty("MESSAGE", "Exception Details: " + e.getMessage());
+			}
+	
+			return result.toString();
+		}
+				
 }
