@@ -14,183 +14,225 @@ import com.google.gson.JsonObject;
 public class Product_Category extends DBHandler{
 
 	//insert product category
-	public JsonObject insertProductCategory(String category_name, String category_description,  String last_modified_by) {
-		 
+	public JsonObject insertCategory(String category_name, String category_description, String last_modified_by) {
 		JsonObject result = null;
-		
 		try {
-			Connection con = connect();
-			if (con == null) 
-			{ 
-				 result = new JsonObject();
-				 result.addProperty("STATUS","ERROR");
-				 result.addProperty("Messege", "Error while connecting to the database");
-				 return result;
+			Connection conn = getConnection();
+			if (conn == null) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "ERROR");
+				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
+				return result; 
 			}
-			
-			String query = "INSERT INTO `product_category`( `category_name`, `category_description`, `last_modified_by`) "
-					+ "VALUES (?,?,?);";
 
-			PreparedStatement preparedStmt = con.prepareStatement(query);
-			
-			
-			// binding values 
-			preparedStmt.setString(1, category_name); 
-			preparedStmt.setString(2, category_description); 
+			String query = "INSERT INTO `product_category`(`category_name`, `category_description`,`last_modified_by`) VALUES(?,?,?);";
+			PreparedStatement preparedStmt = conn.prepareStatement(query);
+
+			preparedStmt.setString(1, category_name);
+			preparedStmt.setString(2, category_description);
 			preparedStmt.setString(3, last_modified_by);
 
-			//execute the statement
 			int status = preparedStmt.executeUpdate();
-			con.close();
+			conn.close();
+
 			result = new JsonObject();
-			
-			//testing
+
 			if(status > 0) {
 				result.addProperty("STATUS", "SUCCESSFUL");
-				result.addProperty("Message", "Product_ Category Inserted successfully.");
+				result.addProperty("MESSAGE", "Product Category inserted successfully.");
 			} else {
 				result.addProperty("STATUS", "UNSUCCESSFUL");
-				result.addProperty("Message", "Unable to Insert Product_Category.");
-			}	
+				result.addProperty("MESSAGE", "Unable to insert the Product Category.");
+			}
 		}
 		catch (Exception e) {
 			result = new JsonObject();
-			result.addProperty("Message", "Problem with inserting product_category");
+			result.addProperty("STATUS", "EXCEPTION");
+			result.addProperty("MESSAGE", "Error occurred while inserting the product category. Exception Details:" + e);
 			System.err.println(e.getMessage());
 		}
-		
 		return result;
 	}
 	
 	//read all the product categories
-	public JsonObject readAllProductCategory() {
+	public JsonObject readCategories() {
 		JsonObject result = null;
-		JsonArray resultArray = new JsonArray();	
-		
-		try {
-			//connection
-			Connection con = connect();
-			if (con == null) 
-			{ 
-				 result = new JsonObject();
-				 result.addProperty("STATUS","ERROR");
-				 result.addProperty("Messege", "Error while connecting to the database");
-				 return result;
+		JsonArray resultArray = new JsonArray();
+		try
+		{			
+			Connection conn = getConnection();
+			if (conn == null) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "ERROR");
+				result.addProperty("MESSAGE","Operation has been terminated due to a database connectivity issue.");
+				return result; 
 			}
-			
-			//SQL query
-			String query = "SELECT `category_id`, `category_name`, `category_description` FROM `product_category`";
-			Statement stmt = con.createStatement();
+
+			String query = "SELECT * FROM `product_category`;";
+			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
-			
-			while(rs.next()) {
-				JsonObject categoryObject = new JsonObject();
-				categoryObject.addProperty("category_id", rs.getString("category_id"));
-				categoryObject.addProperty("category_name", rs.getString("category_name"));
-				categoryObject.addProperty("category_description", rs.getString("category_description"));
-				resultArray.add(categoryObject);
+
+			if(!rs.isBeforeFirst()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("MESSAGE","Request Processed. No product categories found.");
+				return result;
 			}
-			con.close();
-			
+
+			while (rs.next())
+			{
+				JsonObject recordObject = new JsonObject();
+				recordObject.addProperty("category_id", rs.getString("fund_id"));
+				recordObject.addProperty("category_name", rs.getString("category_name"));
+				recordObject.addProperty("category_description", rs.getString("category_description"));
+				recordObject.addProperty("date_last_updated", rs.getString("date_last_updated"));
+				recordObject.addProperty("last_modified_by", rs.getString("last_modified_by"));
+				resultArray.add(recordObject);
+			}
+			conn.close();
+
 			result = new JsonObject();
-			result.add("product-categories", resultArray);
+			result.add("product_categories", resultArray);
+
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			result = new JsonObject();
-			result.addProperty("Message", "Problem with reading product_categories");
+			result.addProperty("STATUS", "EXCEPTION");
+			result.addProperty("MESSAGE", "Error occurred while reading product categories . Exception Details:" + e);
+			System.err.println(e.getMessage());
+		}
+		return result;
+	}
+	
+	//read single product category
+	public JsonObject readCategory(String category_id) {
+		JsonObject result = null;
+		try
+		{			
+			Connection conn = getConnection();
+			if (conn == null) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "ERROR");
+				result.addProperty("MESSAGE","Operation has been terminated due to a database connectivity issue.");
+				return result; 
+			}
+
+			String query = "SELECT * FROM `product_category` WHERE `category_id`=?;";
+			PreparedStatement preparedStmt = conn.prepareStatement(query);
+
+			preparedStmt.setString(1, category_id);
+			ResultSet rs = preparedStmt.executeQuery();
+
+			if(!rs.isBeforeFirst()) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "UNSUCCESSFUL");
+				result.addProperty("MESSAGE","Request Processed. No product categories found.");
+				return result;
+			}
+
+			while (rs.next())
+			{
+				JsonObject recordObject = new JsonObject();
+				recordObject.addProperty("category_id", rs.getString("fund_id"));
+				recordObject.addProperty("category_name", rs.getString("category_name"));
+				recordObject.addProperty("category_description", rs.getString("category_description"));
+				recordObject.addProperty("date_last_updated", rs.getString("date_last_updated"));
+				recordObject.addProperty("last_modified_by", rs.getString("last_modified_by"));
+				result = recordObject;
+			}
+			conn.close();
+
+		}
+		catch (Exception e)
+		{
+			result = new JsonObject();
+			result.addProperty("STATUS", "EXCEPTION");
+			result.addProperty("MESSAGE", "Error occurred while reading product categories. Exception Details:" + e);
 			System.err.println(e.getMessage());
 		}
 		return result;
 	}
 	
 	//update product_category
-	public JsonObject updateProductCategory(String catID, String catName, String catDesc, String lastModified) {
+	public JsonObject updateCategory(String category_id, String category_name, String category_description, String last_modified_by)
+	{
 		JsonObject result = null;
-		
 		try {
-			//connection
-			Connection con = connect();
-			if (con == null) 
-			{ 
-				 result = new JsonObject();
-				 result.addProperty("STATUS","ERROR");
-				 result.addProperty("Messege", "Error while connecting to the database");
-				 return result;
+			Connection conn = getConnection();
+			if (conn == null) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "ERROR");
+				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
+				return result; 
 			}
-			
-			//SQL queries
-			String query = "UPDATE `product_category` SET `category_name`=?,`category_description`=?, `last_modified_by`=? WHERE `category_id`=?;";
-			PreparedStatement prpdstmt = con.prepareStatement(query);
-			
-			prpdstmt.setString(1, catName);
-			prpdstmt.setString(2, catDesc);
-			prpdstmt.setString(3, lastModified);
-			prpdstmt.setString(4, catID);
-			
-			int status = prpdstmt.executeUpdate();
-			con.close();
+
+			String query = "UPDATE `product_category` SET `category_name` = ?, `category_description` = ?, `last_modified_by` = ? WHERE `category_id` = ?;";
+			PreparedStatement preparedStmt = conn.prepareStatement(query);
+
+			preparedStmt.setString(1, category_name);
+			preparedStmt.setString(2, category_description);
+			preparedStmt.setString(3, last_modified_by);
+			preparedStmt.setString(4, category_id);
+
+			int status = preparedStmt.executeUpdate();
+			conn.close();
+
 			result = new JsonObject();
-			
-			//testing
+
 			if(status > 0) {
 				result.addProperty("STATUS", "SUCCESSFUL");
-				result.addProperty("Message", "Product_ Category updated successfully.");
+				result.addProperty("MESSAGE", "Product Category updated successfully.");
 			} else {
 				result.addProperty("STATUS", "UNSUCCESSFUL");
-				result.addProperty("Message", "Unable to Update Product_Category.");
+				result.addProperty("MESSAGE", "Unable to update Product Category.");
 			}
 		}
 		catch (Exception e) {
 			result = new JsonObject();
-			result.addProperty("Message", "Problem with updating product_category");
+			result.addProperty("STATUS", "EXCEPTION");
+			result.addProperty("MESSAGE", "Error occurred while updating Product Category. Exception Details:" + e);
 			System.err.println(e.getMessage());
 		}
 		return result;
 	}
 	
 	//delete product_category
-	public JsonObject deleteProductCategory(String catID) {
+	public JsonObject deleteCategory(String category_id) {
 		JsonObject result = null;
-		
+		int status = 0;
+
 		try {
-			//connection
-			Connection con = connect();
-			if (con == null) 
-			{ 
-				 result = new JsonObject();
-				 result.addProperty("STATUS","ERROR");
-				 result.addProperty("Messege", "Error while connecting to the database");
-				 return result;
+			Connection conn = getConnection();
+			if (conn == null) {
+				result = new JsonObject();
+				result.addProperty("STATUS", "ERROR");
+				result.addProperty("MESSAGE", "Operation has been terminated due to a database connectivity issue.");
+				return result; 
 			}
-			
-			//SQL Queries
-			String query = "DELETE FROM `product_category` WHERE `category_id`=?;";
-			PreparedStatement prpdstmt = con.prepareStatement(query);
-			
-			prpdstmt.setString(1, catID);
-			
-			int status = prpdstmt.executeUpdate();
-			con.close();
+
+			String query = "DELETE FROM `product_category` WHERE `category_id` = ?;";
+			PreparedStatement preparedStmt = conn.prepareStatement(query);
+
+			preparedStmt.setString(1, category_id);
+			status = preparedStmt.executeUpdate();
+
 			result = new JsonObject();
-			
-			//testing
 			if(status > 0) {
 				result.addProperty("STATUS", "SUCCESSFUL");
-				result.addProperty("Message", "Product_ Category deleted successfully.");
+				result.addProperty("MESSAGE", "Product Category deleted successfully.");
 			} else {
 				result.addProperty("STATUS", "UNSUCCESSFUL");
-				result.addProperty("Message", "Unable to delete Product_Category.");
+				result.addProperty("MESSAGE", "Unable to delete Product Category.");
 			}
 		}
 		catch (Exception e) {
 			result = new JsonObject();
-			result.addProperty("Message", "Problem with deleting product_category");
+			result.addProperty("STATUS", "EXCEPTION");
+			result.addProperty("MESSAGE", "Error occurred while deleting Product Category. Exception Details:" + e);
 			System.err.println(e.getMessage());
 		}
-		
 		return result;
-		
-		
 	}
 }
 
