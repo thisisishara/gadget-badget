@@ -18,11 +18,11 @@ public class InterServiceCommHandler {
 	//List of hard-coded Service URIs
 	private static final String PROTOCOL = "http://";
 	private static final String HOST = "127.0.0.1";
-	private static final String PORT = "8080";
-	private static final String PAYMENT_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/DummyPayment/psdummy/";
+	private static final String PORT = "8081";
+	private static final String PAYMENT_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/PaymentService/paymentservice/";
 	private static final String FUNDING_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/FundingService/fundingservice/";
-	private static final String RESEARCHHUB_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/DummyResearch/rsdummy/";
-	private static final String MARKETPLACE_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/DummyMarket/mpdummy/";
+	private static final String RESEARCHHUB_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/ResearchHubService/researchhubservice/";
+	private static final String MARKETPLACE_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/MarketplaceService/marketplaceservice/";
 
 	//JWT Service Token
 	private static final String SERVICE_TOKEN_USR= "SVC eyJraWQiOiJKV0syIiwiYWxnIjoiUlMyNTYifQ.eyJpc3MiOiJnYWRnZXRiYWRnZXQudXNlci5zZWN1cml0eS5KV1RIYW5kbGVyIiwiYXVkIjoiZ2FkZ2V0YmFkZ2V0LndlYnNlcnZpY2VzLnNlcnZpY2VhdXRoIiwianRpIjoiLXM1Rm5BY25OU0tUd2RQRTg5V3d3QSIsImlhdCI6MTYxODUzOTcwNCwibmJmIjoxNjE4NTM5NTg0LCJzdWIiOiJnYWRnZXRiYWRnZXQuYXV0aC50aGlzaXNpc2hhcmFjb20uZ2FkZ2V0YmFkZ2V0LnVzZXIiLCJ1c2VybmFtZSI6ImNvbS5nYWRnZXRiYWRnZXQudXNlciIsInVzZXJfaWQiOiIwMDEiLCJyb2xlIjoiVVNSIn0.ly2Kibpz266CJLPWd1L2RHE9AOw3NKjVsswWPDDzOl3a1p53AxzNP4ebtXRhLW9kLNiq_c-6z0to9NXjEX8DmAGizE7LidIKjqzg6hXGBMUeg3ufYA-wYcymghbEWdCjZHuiXZ39nBcL8Grv4z-6J-ZJuLHOKTF_Wz-kC5sQ_JMc-MzNKTAoo1MZM_SGcJRoLkcpOT11Vqxq8rm-Gb2jWp79LDumQM8sP8yQRGEM1LZUMUj_210L3PU6kIEXR_xoTMLn7h3yr9RwWBBKZhmusMt9Ik4YEP_jiZlbiOabqHHpUHS8IY_3VEGBbbtInFieSWKVTvOjhd0jMxBVYDSrdw";

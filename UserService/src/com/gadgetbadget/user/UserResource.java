@@ -10,8 +10,10 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -63,7 +65,10 @@ public class UserResource {
 
 		//Authorize only ADMINs
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+			//return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+			String response = "You are not Authorized to access this End-point.";
+			builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+			throw new WebApplicationException(builder.build());
 		}
 
 		return user.getUsers(isStats).toString();
@@ -78,7 +83,10 @@ public class UserResource {
 		try {
 			// Authorize only ADMINs
 			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
-				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+				//return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+				String response = "You are not Authorized to access this End-point.";
+				builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+				throw new WebApplicationException(builder.build());
 			}
 			
 			// Prohibit deactivating the SUPER ADMIN
@@ -138,7 +146,10 @@ public class UserResource {
 		try {
 			// Authorize only ADMINs
 			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
-				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+				//return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+				String response = "You are not Authorized to access this End-point.";
+				builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+				throw new WebApplicationException(builder.build());
 			}
 			
 			// Prohibit deactivating the SUPER ADMIN
@@ -183,7 +194,10 @@ public class UserResource {
 	public String readEmployees(@Context SecurityContext securityContext) {
 		// Authorize only ADMINs
 		if(!(securityContext.isUserInRole(UserType.ADMIN.toString()))) {
-			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+			//return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+			String response = "You are not Authorized to access this End-point.";
+			builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+			throw new WebApplicationException(builder.build());
 		}
 		return employee.readEmployees().toString();
 	}
@@ -256,8 +270,18 @@ public class UserResource {
 			}
 
 			// Allow only ADMINs to add multiple employees at a time
+			// by throwing WebApplication Exceptions for Unauthorized users
+			if(securityContext.getUserPrincipal() == null) {
+				String response = "You are not Authorized to access this End-point.";
+				builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+				throw new WebApplicationException(builder.build());
+			}
+			
 			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to Insert Multiple Employees").toString();
+				//return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to Insert Multiple Employees").toString();
+				String response = "You are not Authorized to perform multiple insertions at once.";
+				builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+				throw new WebApplicationException(builder.build());
 			}
 
 			int insertCount = 0;
@@ -278,7 +302,11 @@ public class UserResource {
 				return new JsonResponseBuilder().getJsonFailedResponse("Only " + insertCount +" Employees were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Employees.").toString();
 			}
 
-		} catch (Exception ex){
+		} catch (WebApplicationException wae) {
+			builder = Response.status(wae.getResponse().getStatus()).entity(wae.getResponse().getEntity());
+			throw new WebApplicationException(builder.build());
+			
+		}	catch (Exception ex){
 			System.out.println(ex.getMessage()); // Error Logging
 			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
 		}
@@ -479,9 +507,19 @@ public class UserResource {
 				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
 
-			// Allow only ADMINs to add multiple consumers at a time
+			// Allow only ADMINs to add multiple employees at a time
+			// by throwing WebApplication Exceptions for Unauthorized users
+			if(securityContext.getUserPrincipal() == null) {
+				String response = "You are not Authorized to access this End-point.";
+				builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+				throw new WebApplicationException(builder.build());
+			}
+			
 			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to Insert Multiple Consumers").toString();
+				//return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to Insert Multiple Employees").toString();
+				String response = "You are not Authorized to perform multiple insertions at once.";
+				builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+				throw new WebApplicationException(builder.build());
 			}
 
 			int insertCount = 0;
@@ -502,6 +540,10 @@ public class UserResource {
 				return new JsonResponseBuilder().getJsonFailedResponse("Only " + insertCount +" Consumers were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Consumers.").toString();
 			}
 
+		} catch (WebApplicationException wae) {
+			builder = Response.status(wae.getResponse().getStatus()).entity(wae.getResponse().getEntity());
+			throw new WebApplicationException(builder.build());
+			
 		} catch (Exception ex){
 			System.out.println(ex.getMessage()); // Error Logging
 			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
@@ -706,9 +748,19 @@ public class UserResource {
 				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
 
-			// Allow only ADMINs to add multiple funders at a time
+			// Allow only ADMINs to add multiple employees at a time
+			// by throwing WebApplication Exceptions for Unauthorized users
+			if(securityContext.getUserPrincipal() == null) {
+				String response = "You are not Authorized to access this End-point.";
+				builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+				throw new WebApplicationException(builder.build());
+			}
+			
 			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to Insert Multiple Funders").toString();
+				//return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to Insert Multiple Employees").toString();
+				String response = "You are not Authorized to perform multiple insertions at once.";
+				builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+				throw new WebApplicationException(builder.build());
 			}
 
 			int insertCount = 0;
@@ -729,6 +781,10 @@ public class UserResource {
 				return new JsonResponseBuilder().getJsonFailedResponse("Only " + insertCount +" Funders were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Funders.").toString();
 			}
 
+		} catch (WebApplicationException wae) {
+			builder = Response.status(wae.getResponse().getStatus()).entity(wae.getResponse().getEntity());
+			throw new WebApplicationException(builder.build());
+			
 		} catch (Exception ex){
 			System.out.println(ex.getMessage()); // Error Logging
 			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
@@ -931,9 +987,19 @@ public class UserResource {
 				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
 
-			// Allow only ADMINs to add multiple researchers at a time
+			// Allow only ADMINs to add multiple employees at a time
+			// by throwing WebApplication Exceptions for Unauthorized users
+			if(securityContext.getUserPrincipal() == null) {
+				String response = "You are not Authorized to access this End-point.";
+				builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+				throw new WebApplicationException(builder.build());
+			}
+			
 			if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to Insert Multiple Researchers").toString();
+				//return new JsonResponseBuilder().getJsonProhibitedResponse("You are not Allowed to Insert Multiple Employees").toString();
+				String response = "You are not Authorized to perform multiple insertions at once.";
+				builder = Response.status(Response.Status.UNAUTHORIZED).entity(response);
+				throw new WebApplicationException(builder.build());
 			}
 
 			int insertCount = 0;
@@ -953,7 +1019,11 @@ public class UserResource {
 			} else {
 				return new JsonResponseBuilder().getJsonFailedResponse("Only " + insertCount +" Researchers were Inserted. Inserting failed for "+ (elemCount-insertCount) + " Researchers.").toString();
 			}
-
+			
+		} catch (WebApplicationException wae) {
+			builder = Response.status(wae.getResponse().getStatus()).entity(wae.getResponse().getEntity());
+			throw new WebApplicationException(builder.build());
+			
 		} catch (NumberFormatException ex) {
 			System.out.println(ex.getMessage()); // Error Logging
 			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
