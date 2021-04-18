@@ -4,24 +4,22 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class DBHandler {
-
-	public Connection connect()
+	private static String host = "127.0.0.1";
+	private static String port = "3306";
+	private static String database = "gadgetbadget_marketplace";
+	private static String username = "root";
+	private static String password = "";
+	private Connection conn = null;
+	
+	public Connection getConnection()
 	{
-		Connection con = null;
-
 		try
 		{
-			Class.forName("com.mysql.jdbc.Driver");
-			con = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/gadgetbadget_marketplace","root", "");
-			//For testing
-			System.out.print("Successfully connected");
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			conn = DriverManager.getConnection("jdbc:mysql://"+host+":"+port+"/"+database, username, password);
 		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
-
-		return con;
+		catch (Exception e)
+		{e.printStackTrace();}
+		return conn;
 	}
-	
 }
