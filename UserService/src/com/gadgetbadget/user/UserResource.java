@@ -70,7 +70,7 @@ public class UserResource {
 	}
 
 	//Change Account State [Activate/Deactivate]
-	@POST
+	@PUT
 	@Path("/{user_id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String changeUserAccountState(@Context SecurityContext securityContext, @PathParam("user_id") String uri_user_id, @QueryParam("deactivate") boolean isDeactivated)
@@ -80,9 +80,10 @@ public class UserResource {
 			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
 				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 			}
+			
 			// Prohibit deactivating the SUPER ADMIN
 			if(uri_user_id.equals(SUPER_ADMIN)) {
-				return new JsonResponseBuilder().getJsonProhibitedResponse("Deactivating the SUPER_ADMIN Account is NOT Allowed!.").toString();
+				return new JsonResponseBuilder().getJsonProhibitedResponse("Altering state of the SUPER_ADMIN Account is NOT Allowed!.").toString();
 			}
 
 			return user.changeUserAccountState(uri_user_id, isDeactivated? "Yes":"No").toString();
@@ -94,7 +95,7 @@ public class UserResource {
 	}
 
 	//Change Password
-	@POST
+	@PUT
 	@Path("/{user_id}/password")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
@@ -125,6 +126,52 @@ public class UserResource {
 		} catch (Exception ex){
 			System.out.println(ex.getMessage()); // Error Logging
 			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+		}
+	}
+
+	//Generic User Account Delete
+	@DELETE
+	@Path("/{user_id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String deleteUser(@PathParam("user_id") String uri_user_id, @Context SecurityContext securityContext)
+	{
+		try {
+			// Authorize only ADMINs
+			if(! (securityContext.isUserInRole(UserType.ADMIN.toString()))) {
+				return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
+			}
+			
+			// Prohibit deactivating the SUPER ADMIN
+			if(uri_user_id.equals(SUPER_ADMIN)) {
+				return new JsonResponseBuilder().getJsonProhibitedResponse("Deleting the SUPER_ADMIN Account is NOT Allowed!.").toString();
+			}
+			
+			if(!uri_user_id.contains(",")) {
+				return user.deleteUser(uri_user_id).toString();
+			}
+
+			String[] ids = uri_user_id.split(",");
+
+			int deleteCount = 0;
+			int elemCount = ids.length;
+
+			for (String id : ids) {
+				JsonObject response = user.deleteUser(id);
+
+				if (!response.has("MESSAGE")) {
+					deleteCount++;
+				}
+			}
+
+			if(deleteCount == elemCount) {
+				return new JsonResponseBuilder().getJsonSuccessResponse(deleteCount + " Users were deleted successfully.").toString();
+			} else {
+				return new JsonResponseBuilder().getJsonFailedResponse("Only " + deleteCount +" Users were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Users.").toString();
+			}
+
+		} catch (Exception ex){
+			System.out.println(ex.getMessage()); // Error Logging
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex).toString();
 		}
 	}
 
@@ -427,7 +474,7 @@ public class UserResource {
 			JsonObject consumerJSON_parsed = new JsonParser().parse(consumerJSON).getAsJsonObject();
 
 			if(!consumerJSON_parsed.has("consumers")) {
-				return (consumer.insertConsumer(consumerJSON_parsed.get("username").getAsString(), consumerJSON_parsed.get("password").getAsString(), consumerJSON_parsed.get("role_id").getAsString(), consumerJSON_parsed.get("first_name").getAsString(), consumerJSON_parsed.get("last_name").getAsString(), consumerJSON_parsed.get("gender").getAsString(), consumerJSON_parsed.get("primary_email").getAsString(), consumerJSON_parsed.get("primary_phone").getAsString())).toString();
+				return (consumer.insertConsumer(consumerJSON_parsed.get("username").getAsString(), consumerJSON_parsed.get("password").getAsString(), UserType.CNSMR.toString(), consumerJSON_parsed.get("first_name").getAsString(), consumerJSON_parsed.get("last_name").getAsString(), consumerJSON_parsed.get("gender").getAsString(), consumerJSON_parsed.get("primary_email").getAsString(), consumerJSON_parsed.get("primary_phone").getAsString())).toString();
 			} else if (!consumerJSON_parsed.get("consumers").isJsonArray()) {
 				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
@@ -442,7 +489,7 @@ public class UserResource {
 
 			for (JsonElement consumerElem : consumerJSON_parsed.get("consumers").getAsJsonArray()) {
 				JsonObject consumerObj = consumerElem.getAsJsonObject();
-				JsonObject response = (consumer.insertConsumer(consumerObj.get("username").getAsString(), consumerObj.get("password").getAsString(), consumerObj.get("role_id").getAsString(), consumerObj.get("first_name").getAsString(), consumerObj.get("last_name").getAsString(), consumerObj.get("gender").getAsString(), consumerObj.get("primary_email").getAsString(), consumerObj.get("primary_phone").getAsString()));
+				JsonObject response = (consumer.insertConsumer(consumerObj.get("username").getAsString(), consumerObj.get("password").getAsString(), UserType.CNSMR.toString(), consumerObj.get("first_name").getAsString(), consumerObj.get("last_name").getAsString(), consumerObj.get("gender").getAsString(), consumerObj.get("primary_email").getAsString(), consumerObj.get("primary_phone").getAsString()));
 
 				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
 					insertCount++;
@@ -654,7 +701,7 @@ public class UserResource {
 
 			// Verify JSON Object's Validity
 			if(!funderJSON_parsed.has("funders")) {
-				return (funder.insertFunder(funderJSON_parsed.get("username").getAsString(), funderJSON_parsed.get("password").getAsString(), funderJSON_parsed.get("role_id").getAsString(), funderJSON_parsed.get("first_name").getAsString(), funderJSON_parsed.get("last_name").getAsString(), funderJSON_parsed.get("gender").getAsString(), funderJSON_parsed.get("primary_email").getAsString(), funderJSON_parsed.get("primary_phone").getAsString(), funderJSON_parsed.get("organization").getAsString())).toString();
+				return (funder.insertFunder(funderJSON_parsed.get("username").getAsString(), funderJSON_parsed.get("password").getAsString(), UserType.FUNDR.toString(), funderJSON_parsed.get("first_name").getAsString(), funderJSON_parsed.get("last_name").getAsString(), funderJSON_parsed.get("gender").getAsString(), funderJSON_parsed.get("primary_email").getAsString(), funderJSON_parsed.get("primary_phone").getAsString(), funderJSON_parsed.get("organization").getAsString())).toString();
 			} else if (!funderJSON_parsed.get("funders").isJsonArray()) {
 				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
@@ -669,7 +716,7 @@ public class UserResource {
 
 			for (JsonElement funderElem : funderJSON_parsed.get("funders").getAsJsonArray()) {
 				JsonObject funderObj = funderElem.getAsJsonObject();
-				JsonObject response = (funder.insertFunder(funderObj.get("username").getAsString(), funderObj.get("password").getAsString(), funderObj.get("role_id").getAsString(), funderObj.get("first_name").getAsString(), funderObj.get("last_name").getAsString(), funderObj.get("gender").getAsString(), funderObj.get("primary_email").getAsString(), funderObj.get("primary_phone").getAsString(), funderObj.get("organization").getAsString()));
+				JsonObject response = (funder.insertFunder(funderObj.get("username").getAsString(), funderObj.get("password").getAsString(), UserType.FUNDR.toString(), funderObj.get("first_name").getAsString(), funderObj.get("last_name").getAsString(), funderObj.get("gender").getAsString(), funderObj.get("primary_email").getAsString(), funderObj.get("primary_phone").getAsString(), funderObj.get("organization").getAsString()));
 
 				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
 					insertCount++;
@@ -879,7 +926,7 @@ public class UserResource {
 
 			// Verify JSON Object's Validity
 			if(!researcherJSON_parsed.has("researchers")) {
-				return (researcher.insertResearcher(researcherJSON_parsed.get("username").getAsString(), researcherJSON_parsed.get("password").getAsString(), researcherJSON_parsed.get("role_id").getAsString(), researcherJSON_parsed.get("first_name").getAsString(), researcherJSON_parsed.get("last_name").getAsString(), researcherJSON_parsed.get("gender").getAsString(), researcherJSON_parsed.get("primary_email").getAsString(), researcherJSON_parsed.get("primary_phone").getAsString(), researcherJSON_parsed.get("institution").getAsString(), researcherJSON_parsed.get("field_of_study").getAsString(),Integer.parseInt(researcherJSON_parsed.get("years_of_exp").getAsString()))).toString();
+				return (researcher.insertResearcher(researcherJSON_parsed.get("username").getAsString(), researcherJSON_parsed.get("password").getAsString(), UserType.RSCHR.toString(), researcherJSON_parsed.get("first_name").getAsString(), researcherJSON_parsed.get("last_name").getAsString(), researcherJSON_parsed.get("gender").getAsString(), researcherJSON_parsed.get("primary_email").getAsString(), researcherJSON_parsed.get("primary_phone").getAsString(), researcherJSON_parsed.get("institution").getAsString(), researcherJSON_parsed.get("field_of_study").getAsString(),Integer.parseInt(researcherJSON_parsed.get("years_of_exp").getAsString()))).toString();
 			} else if (!researcherJSON_parsed.get("researchers").isJsonArray()) {
 				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
@@ -894,7 +941,7 @@ public class UserResource {
 
 			for (JsonElement researcherElem : researcherJSON_parsed.get("researchers").getAsJsonArray()) {
 				JsonObject researcherObj = researcherElem.getAsJsonObject();
-				JsonObject response = (researcher.insertResearcher(researcherObj.get("username").getAsString(), researcherObj.get("password").getAsString(), researcherObj.get("role_id").getAsString(), researcherObj.get("first_name").getAsString(), researcherObj.get("last_name").getAsString(), researcherObj.get("gender").getAsString(), researcherObj.get("primary_email").getAsString(), researcherObj.get("primary_phone").getAsString(), researcherObj.get("institution").getAsString(), researcherObj.get("field_of_study").getAsString(),Integer.parseInt(researcherObj.get("years_of_exp").getAsString())));
+				JsonObject response = (researcher.insertResearcher(researcherObj.get("username").getAsString(), researcherObj.get("password").getAsString(), UserType.RSCHR.toString(), researcherObj.get("first_name").getAsString(), researcherObj.get("last_name").getAsString(), researcherObj.get("gender").getAsString(), researcherObj.get("primary_email").getAsString(), researcherObj.get("primary_phone").getAsString(), researcherObj.get("institution").getAsString(), researcherObj.get("field_of_study").getAsString(),Integer.parseInt(researcherObj.get("years_of_exp").getAsString())));
 
 				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
 					insertCount++;

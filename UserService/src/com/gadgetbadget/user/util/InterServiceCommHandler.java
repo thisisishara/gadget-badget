@@ -20,7 +20,7 @@ public class InterServiceCommHandler {
 	private static final String HOST = "127.0.0.1";
 	private static final String PORT = "8080";
 	private static final String PAYMENT_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/DummyPayment/psdummy/";
-	private static final String FUNDING_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/DummyFunding/fsdummy/";
+	private static final String FUNDING_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/FundingService/fundingservice/";
 	private static final String RESEARCHHUB_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/DummyResearch/rsdummy/";
 	private static final String MARKETPLACE_SERVICE_URI = PROTOCOL + HOST + ":" + PORT + "/DummyMarket/mpdummy/";
 

@@ -219,7 +219,7 @@ public class SecurityResource {
 				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
 
-			int insertCount = 0;
+			int deleteCount = 0;
 			int elemCount = roleJSON_parsed.get("roles").getAsJsonArray().size();
 
 			for (JsonElement roleElem : roleJSON_parsed.get("roles").getAsJsonArray()) {
@@ -227,17 +227,17 @@ public class SecurityResource {
 				JsonObject response = (role.deleteRole(roleObj.get("role_id").getAsString()));
 
 				if (response.get("STATUS").getAsString().equalsIgnoreCase(DBOpStatus.SUCCESSFUL.toString())) {
-					insertCount++;
+					deleteCount++;
 				}
 			}
 
 			result = new JsonObject();
-			if(insertCount == elemCount) {
+			if(deleteCount == elemCount) {
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
-				result.addProperty("MESSAGE", insertCount + " Roles were deleted successfully.");
+				result.addProperty("MESSAGE", deleteCount + " Roles were deleted successfully.");
 			} else {
 				result.addProperty("STATUS", DBOpStatus.UNSUCCESSFUL.toString());
-				result.addProperty("MESSAGE", "Only " + insertCount +" Roles were deleted. Deleting failed for "+ (elemCount-insertCount) + " Roles.");
+				result.addProperty("MESSAGE", "Only " + deleteCount +" Roles were deleted. Deleting failed for "+ (elemCount-deleteCount) + " Roles.");
 			}
 
 		} catch (Exception ex){

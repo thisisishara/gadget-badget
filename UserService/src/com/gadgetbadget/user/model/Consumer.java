@@ -118,7 +118,7 @@ public class Consumer extends User{
 				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
 			}
 
-			String query = "SELECT u.user_id, u.role_id, u.first_name, u.last_name, u.gender, u.primary_email, u.primary_phone, f.organization FROM `user` u, `funder` f WHERE u.user_id=f.funder_id AND u.user_id = ?";
+			String query = "SELECT * FROM `user` u, `consumer` c WHERE u.`user_id` = c.`consumer_id` AND u.`user_id` = ?";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 			
 			preparedStmt.setString(1, consumer_id);
@@ -137,7 +137,6 @@ public class Consumer extends User{
 				recordObject.addProperty("gender", rs.getString("gender"));
 				recordObject.addProperty("primary_email", rs.getString("primary_email"));
 				recordObject.addProperty("primary_phone", rs.getString("primary_phone"));
-				recordObject.addProperty("organization", rs.getString("organization"));
 				result = recordObject;
 			}
 			conn.close();

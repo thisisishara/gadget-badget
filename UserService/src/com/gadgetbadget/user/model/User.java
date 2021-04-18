@@ -38,11 +38,12 @@ public class User extends DBHandler {
 				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue."); 
 			}
 
-			String query = "SELECT u.`user_id`, u.`role_id`, u.`is_deactivated` FROM `user` u WHERE u.`username` = ? AND u.`password`=?;";
+			String query = "SELECT u.`user_id`, u.`role_id`, u.`is_deactivated` FROM `user` u WHERE (u.`username` = ? OR u.`user_id`= ?) AND u.`password`=?;";
 			PreparedStatement preparedStmt = conn.prepareStatement(query);
 
 			preparedStmt.setString(1, username);
-			preparedStmt.setString(2, password);
+			preparedStmt.setString(2, username);
+			preparedStmt.setString(3, password);
 			ResultSet rs = preparedStmt.executeQuery();
 
 			if(!rs.isBeforeFirst()) {
@@ -144,10 +145,9 @@ public class User extends DBHandler {
 						}
 					}
 					
-					/*
 					if(role_id.equalsIgnoreCase(UserType.RSCHR.toString())){
 						JsonObject interRes = null;
-						interRes = new InterServiceCommHandler().researchHubIntercomms("researchprojects?researcherid=" + user_id + "&summarized=true", HttpMethod.GET, null);
+						interRes = new InterServiceCommHandler().researchHubIntercomms("research-projects?researcherid=" + user_id + "&summarized=true", HttpMethod.GET, null);
 						if(interRes.entrySet().size() >2) {
 							jsonElem.getAsJsonObject().add("research_stats", interRes);
 						} else {
@@ -160,7 +160,7 @@ public class User extends DBHandler {
 						} else {
 							jsonElem.getAsJsonObject().addProperty("products_stats", "NOT FOUND");
 						}
-					}*/
+					}
 				}
 			}						
 		}
@@ -248,12 +248,15 @@ public class User extends DBHandler {
 			preparedStmtRtr.setString(1, user_id);
 			preparedStmtRtr.setString(2, oldPassword);
 			ResultSet rs = preparedStmtRtr.executeQuery();
-
+			
 			int retrCount = 0;
 			while(rs.next()) {
 				retrCount++;
 				System.out.println(retrCount);
 			}
+			
+
+			System.out.println("PASS:::"+retrCount);
 
 			if(!(retrCount>0)) {
 				return new JsonResponseBuilder().getJsonErrorResponse("Failed to validate the existing password. Password changing failed.");
@@ -281,6 +284,41 @@ public class User extends DBHandler {
 			System.err.println(ex.getMessage());
 		}
 		return result;
+	}
+	
+	/**
+	 * This method is used to delete a specific user account from the local database of the user service. All
+	 * payment methods, specific user account types will all get deleted when this method is called as the sub
+	 * tables are set to delete on the user table's delete through foreign key cascading in the back-end database.
+	 * 
+	 * @param user_id	user id of the user account to be deleted
+	 * @return			returns a JSON response which has the status of the operation and a detailed message about the particular status. 
+	 */
+	public JsonObject deleteUser(String user_id) {
+		try {
+			Connection conn = getConnection();
+			if (conn == null) {
+				return new JsonResponseBuilder().getJsonErrorResponse("Operation has been terminated due to a database connectivity issue.");
+			}
+
+			String query = "DELETE FROM `user` WHERE `user_id`=?;";
+			PreparedStatement preparedStmt = conn.prepareStatement(query);
+
+			preparedStmt.setString(1, user_id);
+
+			int status = preparedStmt.executeUpdate();
+			conn.close();
+
+			if(status > 0) {
+				return new JsonResponseBuilder().getJsonSuccessResponse("User " + user_id + " deleted successfully.");
+			} else {
+				return new JsonResponseBuilder().getJsonFailedResponse("Unable to find the User " + user_id);
+			}
+		}
+		catch (Exception ex) {
+			System.err.println(ex.getMessage());
+			return new JsonResponseBuilder().getJsonExceptionResponse("Error occurred while deleting User " + user_id + ". Exception Details:" + ex);
+		}
 	}
 
 }
