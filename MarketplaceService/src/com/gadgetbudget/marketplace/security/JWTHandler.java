@@ -127,7 +127,7 @@ public class JWTHandler extends DBHandler{
 		JWK jwk = null;
 		try
 		{
-			Connection conn = connect();
+			Connection conn = getConnection();
 			if (conn == null) {
 				jwk = null;
 			}
