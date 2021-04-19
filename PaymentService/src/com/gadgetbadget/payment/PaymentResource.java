@@ -30,7 +30,7 @@ public class PaymentResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String readPayments(@Context SecurityContext securityContext, @QueryParam("consumerid") String consumer_id, @QueryParam("summarized") boolean isSummarized, @QueryParam("productid") String product_id) {
 		JsonObject result = null;
-
+		
 		// Authorize only ADMINs, Consumers, Researchers, and UserService(USR), MKT Service
 		if(! (securityContext.isUserInRole("ADMIN") || securityContext.isUserInRole("USR") || securityContext.isUserInRole("CNSMR") || securityContext.isUserInRole("FNMGR") || securityContext.isUserInRole("MKT"))) {
 			result = new JsonObject();
@@ -203,7 +203,7 @@ public class PaymentResource {
 
 			int insertCount = 0;
 			int elemCount = paymentJSON_parsed.get("payments").getAsJsonArray().size();
-
+			
 			JsonArray errorsArr = new JsonArray();
 
 			for (JsonElement paymentElem : paymentJSON_parsed.get("payments").getAsJsonArray()) {
@@ -218,7 +218,7 @@ public class PaymentResource {
 					}
 				}
 				
-				if(! new ValidationHandler().validateUserId(paymentJSON_parsed.get("consumer_id").getAsString(), "CNSMR")) {
+				if(! new ValidationHandler().validateUserId(paymentObj.get("consumer_id").getAsString(), "CNSMR")) {
 					JsonObject errorElem = new JsonObject();
 					errorElem.addProperty("id_mismatch", "Consumer ID given is not in the correct ID format.");
 					errorsArr.add(errorElem);
@@ -256,7 +256,7 @@ public class PaymentResource {
 		} catch (Exception ex){
 			result = new JsonObject();
 			result.addProperty("STATUS", "EXCEPTION");
-			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+			result.addProperty("MESSAGE", "Exception Details: " + ex);
 		}
 
 		return result.toString();

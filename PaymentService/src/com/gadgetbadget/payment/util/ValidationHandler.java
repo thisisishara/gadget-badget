@@ -30,7 +30,7 @@ public class ValidationHandler {
 					return false;
 				}
 
-				if(paymentMethodDetails.get("creditcard_security_no").getAsString().length() != 3) {
+				if(paymentMethodDetails.get("creditcard_security_no").getAsString().length() != 4) {
 					return false;
 				}
 			}

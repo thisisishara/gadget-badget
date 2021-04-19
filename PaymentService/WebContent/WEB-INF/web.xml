@@ -17,7 +17,7 @@
 		<servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
 		<init-param>
 			<param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
-			<param-value>com.dummy.payment.security.AuthorizationFilter</param-value>
+			<param-value>com.gadgetbadget.payment.security.AuthorizationFilter</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
