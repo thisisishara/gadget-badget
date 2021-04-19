@@ -30,7 +30,7 @@ public class PaymentResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String readPayments(@Context SecurityContext securityContext, @QueryParam("consumerid") String consumer_id, @QueryParam("summarized") boolean isSummarized, @QueryParam("productid") String product_id) {
 		JsonObject result = null;
-		
+
 		// Authorize only ADMINs, Consumers, Researchers, and UserService(USR), MKT Service
 		if(! (securityContext.isUserInRole("ADMIN") || securityContext.isUserInRole("USR") || securityContext.isUserInRole("CNSMR") || securityContext.isUserInRole("FNMGR") || securityContext.isUserInRole("MKT"))) {
 			result = new JsonObject();
@@ -146,6 +146,31 @@ public class PaymentResource {
 		return result.toString();
 	}
 
+	@GET
+	@Path("/profit")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String readPayment(@Context SecurityContext securityContext) {
+
+		JsonObject result = null;
+
+		// Authorize only ADMINs, CNSMRs
+		if(!(securityContext.isUserInRole("ADMIN") || securityContext.isUserInRole("FNMGR"))) {
+			result = new JsonObject();
+			result.addProperty("STATUS", "ERROR");
+			result.addProperty("MESSAGE","You are not Authorized to access this End-point!");
+			return result.toString();
+		}
+
+		try {
+			return payment.calculateProfit().toString();
+		} catch (Exception ex){
+			result = new JsonObject();
+			result.addProperty("STATUS", "EXCEPTION");
+			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
+			return result.toString();
+		}
+	}
+
 
 	@POST
 	@Path("/")
@@ -170,7 +195,7 @@ public class PaymentResource {
 			JsonObject paymentJSON_parsed = new JsonParser().parse(paymentJSON).getAsJsonObject();
 
 			if(!paymentJSON_parsed.has("payments")) {
-				
+
 				//verify if the given id is correct
 				if(! new ValidationHandler().validateUserId(paymentJSON_parsed.get("consumer_id").getAsString(), "CNSMR")) {
 					result = new JsonObject();
@@ -178,7 +203,7 @@ public class PaymentResource {
 					result.addProperty("MESSAGE","Consumer ID given is not in the correct ID format.");
 					return result.toString();
 				}
-				
+
 				if(! (securityContext.isUserInRole("ADMIN"))) {
 					if (! paymentJSON_parsed.get("consumer_id").getAsString().equals(current_user_id)){
 						result = new JsonObject();
@@ -203,7 +228,7 @@ public class PaymentResource {
 
 			int insertCount = 0;
 			int elemCount = paymentJSON_parsed.get("payments").getAsJsonArray().size();
-			
+
 			JsonArray errorsArr = new JsonArray();
 
 			for (JsonElement paymentElem : paymentJSON_parsed.get("payments").getAsJsonArray()) {
@@ -217,7 +242,7 @@ public class PaymentResource {
 						continue;
 					}
 				}
-				
+
 				if(! new ValidationHandler().validateUserId(paymentObj.get("consumer_id").getAsString(), "CNSMR")) {
 					JsonObject errorElem = new JsonObject();
 					errorElem.addProperty("id_mismatch", "Consumer ID given is not in the correct ID format.");
@@ -410,7 +435,7 @@ public class PaymentResource {
 			for (JsonElement paymentElem : paymentJSON_parsed.get("payments").getAsJsonArray()) {
 				JsonObject paymentObj = paymentElem.getAsJsonObject();
 				JsonObject response = null;
-				
+
 				if(! (securityContext.isUserInRole("ADMIN"))) {
 					response = (payment.deletePayment(current_user_id, paymentObj.get("payment_id").getAsString()));
 				} else {
@@ -443,31 +468,6 @@ public class PaymentResource {
 		}
 
 		return result.toString();
-	}
-
-	@GET
-	@Path("/profit")
-	@Produces(MediaType.APPLICATION_JSON)
-	public String readPayment(@Context SecurityContext securityContext) {
-
-		JsonObject result = null;
-
-		// Authorize only ADMINs, CNSMRs
-		if(!(securityContext.isUserInRole("ADMIN") || securityContext.isUserInRole("FNMGR"))) {
-			result = new JsonObject();
-			result.addProperty("STATUS", "ERROR");
-			result.addProperty("MESSAGE","You are not Authorized to access this End-point!");
-			return result.toString();
-		}
-
-		try {
-			return payment.calculateProfit().toString();
-		} catch (Exception ex){
-			result = new JsonObject();
-			result.addProperty("STATUS", "EXCEPTION");
-			result.addProperty("MESSAGE", "Exception Details: " + ex.getMessage());
-			return result.toString();
-		}
 	}
 
 }
