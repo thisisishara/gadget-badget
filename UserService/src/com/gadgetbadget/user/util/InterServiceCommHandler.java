@@ -15,6 +15,7 @@ import com.sun.jersey.api.client.WebResource;
  * @author Ishara_Dissanayake
  */
 public class InterServiceCommHandler {
+	
 	//List of hard-coded Service URIs
 	private static final String PROTOCOL = "http://";
 	private static final String HOST = "127.0.0.1";
