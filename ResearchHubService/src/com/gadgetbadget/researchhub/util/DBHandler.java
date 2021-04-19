@@ -15,12 +15,11 @@ public class DBHandler {
 	{
 		try
 		{
-			Class.forName("com.mysql.jdbc.Driver");
+			Class.forName("com.mysql.cj.jdbc.Driver");
 			conn = DriverManager.getConnection("jdbc:mysql://"+host+":"+port+"/"+database, username, password);
 		}
 		catch (Exception e)
 		{e.printStackTrace();}
 		return conn;
 	}
-    
 }
