@@ -82,7 +82,7 @@ public class Product_Category extends DBHandler{
 			while (rs.next())
 			{
 				JsonObject recordObject = new JsonObject();
-				recordObject.addProperty("category_id", rs.getString("fund_id"));
+				recordObject.addProperty("category_id", rs.getString("category_id"));
 				recordObject.addProperty("category_name", rs.getString("category_name"));
 				recordObject.addProperty("category_description", rs.getString("category_description"));
 				recordObject.addProperty("date_last_updated", rs.getString("date_last_updated"));
@@ -134,7 +134,7 @@ public class Product_Category extends DBHandler{
 			while (rs.next())
 			{
 				JsonObject recordObject = new JsonObject();
-				recordObject.addProperty("category_id", rs.getString("fund_id"));
+				recordObject.addProperty("category_id", rs.getString("category_id"));
 				recordObject.addProperty("category_name", rs.getString("category_name"));
 				recordObject.addProperty("category_description", rs.getString("category_description"));
 				recordObject.addProperty("date_last_updated", rs.getString("date_last_updated"));
