@@ -1,4 +1,4 @@
-package com.gadgetbudget.marketplace.security;
+package com.gadgetbadget.marketplace.security;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;

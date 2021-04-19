@@ -1,4 +1,4 @@
-package com.gadgetbudget.marketplace.security;
+package com.gadgetbadget.marketplace.security;
 
 import java.security.KeyFactory;
 import java.security.PrivateKey;
@@ -20,7 +20,7 @@ import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.lang.JoseException;
 
-import com.gadgetbudget.marketplace.util.DBHandler;
+import com.gadgetbadget.marketplace.util.DBHandler;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 

@@ -1,4 +1,4 @@
-package com.gadgetbudget.marketplace.security;
+package com.gadgetbadget.marketplace.security;
 
 import java.security.Principal;
 import java.util.Set;
