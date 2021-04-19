@@ -1,4 +1,4 @@
-package com.gadgetbudget.marketplace.security;
+package com.gadgetbadget.marketplace.security;
 
 import java.util.HashSet;
 import java.util.List;
@@ -37,9 +37,6 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 
 	@Override
 	public ContainerRequest filter(ContainerRequest request) {
-		
-		System.out.println("Wada");
-		
 		String authToken = null;
 		String authTokenPrefix = null;
 		ResponseBuilder builder = null;

@@ -1,4 +1,4 @@
-package com.gadgetbudget.marketplace.util;
+package com.gadgetbadget.marketplace.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

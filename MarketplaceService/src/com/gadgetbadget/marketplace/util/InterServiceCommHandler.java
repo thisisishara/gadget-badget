@@ -1,4 +1,4 @@
-package com.gadgetbudget.marketplace.util;
+package com.gadgetbadget.marketplace.util;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

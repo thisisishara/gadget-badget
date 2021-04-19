@@ -1,4 +1,4 @@
-package com.gadgetbudget.marketplace.model;
+package com.gadgetbadget.marketplace.model;
 
 import java.math.BigDecimal;
 import java.sql.CallableStatement;
@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.sql.Types;
 
-import com.gadgetbudget.marketplace.util.DBHandler;
+import com.gadgetbadget.marketplace.util.DBHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 

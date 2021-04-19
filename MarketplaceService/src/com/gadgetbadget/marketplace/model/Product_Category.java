@@ -1,4 +1,4 @@
-package com.gadgetbudget.marketplace.model;
+package com.gadgetbadget.marketplace.model;
 
 
 import java.sql.Connection;
@@ -6,7 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import com.gadgetbudget.marketplace.util.DBHandler;
+import com.gadgetbadget.marketplace.util.DBHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 

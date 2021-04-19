@@ -13,10 +13,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
-
-import com.gadgetbudget.marketplace.model.Product;
-import com.gadgetbudget.marketplace.model.Product_Category;
-import com.gadgetbudget.marketplace.util.InterServiceCommHandler;
+import com.gadgetbadget.marketplace.model.Product;
+import com.gadgetbadget.marketplace.model.Product_Category;
+import com.gadgetbadget.marketplace.util.InterServiceCommHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
