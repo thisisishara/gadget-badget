@@ -3,7 +3,7 @@ package com.gadgetbadget.researchhub.model;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
+
 
 import com.gadgetbadget.researchhub.util.DBHandler;
 import com.google.gson.JsonArray;

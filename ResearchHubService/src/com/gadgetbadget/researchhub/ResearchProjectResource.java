@@ -579,7 +579,7 @@ public class ResearchProjectResource {
 
 			//check if multiple inserts
 			if(!collaboratorJSON_parsed.has("collaborators")) {
-				return (collaborator.updateCollaborator("project_id",collaboratorJSON_parsed.get("full_name").getAsString(),collaboratorJSON_parsed.get("institution").getAsString())).toString();
+				return (collaborator.updateCollaborator(project_id,collaboratorJSON_parsed.get("full_name").getAsString(),collaboratorJSON_parsed.get("institution").getAsString())).toString();
 			} else if (!collaboratorJSON_parsed.get("collaborators").isJsonArray()) {
 				result = new JsonObject();
 				result.addProperty("STATUS", "ERROR");
@@ -666,7 +666,7 @@ public class ResearchProjectResource {
 
 			for (JsonElement collaboratorElem : collaboratorJSON_parsed.get("collaborators").getAsJsonArray()) {
 				JsonObject collaboratorObj = collaboratorElem.getAsJsonObject();
-				JsonObject response = (collaborator.deleteCollaborator(collaboratorObj.get("project_id").getAsString(),collaboratorObj.get("full_namec").getAsString()));
+				JsonObject response = (collaborator.deleteCollaborator(collaboratorObj.get("project_id").getAsString(),collaboratorObj.get("full_name").getAsString()));
 
 				if (response.get("STATUS").getAsString().equalsIgnoreCase("SUCCESSFUL")) {
 					insertCount++;
