@@ -5,6 +5,8 @@ import java.util.Set;
 
 import javax.ws.rs.core.SecurityContext;
 
+
+
 /**
  * This class is a exact copy of the original class with the same name in the UserService and
  * used to inject JWT PAYLOAD data to security context of the authenticated user for
