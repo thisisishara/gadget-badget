@@ -23,7 +23,9 @@ import com.google.gson.JsonParser;
 
 /**
  * This Resource class represents account security related end-points
- * Usually only ADMINs can access end-points implemented within this class.
+ * Usually only ADMINs can access end-points implemented within this class
+ * except the authenticate sub resource which is used to signing in users
+ * and provide a JWT after authenticating a user.
  * 
  * @author Ishara_Dissanayake
  */
@@ -32,7 +34,15 @@ public class SecurityResource {
 	Role role = new Role();
 	User user = new User();
 
-	// Authentication End-point
+	/**
+	 * This API End-point is used to sign in a particular user when they have provided a user-name and
+	 * a password in the form of raw JSON in the request PAYLOAD. The authentication filter releases a
+	 * request made to this end-point immediately after identifying the path.
+	 * 
+	 * @param authJSON	JSON object containing user-name and password of the signing in user
+	 * @return			returns a JSON formatted string with a JWT included if authenticated. If failed to authenticate, a
+	 * 					JSON response will be returned with appropriate information on what went exactly wrong.
+	 */
 	@POST
 	@Path("/authenticate")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -66,24 +76,35 @@ public class SecurityResource {
 				return new JsonResponseBuilder().getJsonErrorResponse("Failed to Issue a valid JWT Authentication Token.").toString();
 			}
 			
+			// Return the result including the generated JWT
 			result = new JsonObject();
 			result.addProperty("STATUS", DBOpStatus.AUTHENTICATED.toString());
 			result.addProperty("JWT Auth Token", jwt);
 			return result.toString();
 			
 		} catch (Exception ex){
-			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex).toString();
 		}
 	}
 	
 
-	//Roles related End-points.
+	/**
+	 * GET method of sub resource roles can be only accessed by users with administrator privileges, meaning that the role id
+	 * of the user must be UserType.ADMIN to get authenticated to read the list of roles provided by GadgetBadget.
+	 * 
+	 * @param securityContext	The role, user-name, and the user ID are attached into securityContext when the users authenticate
+	 * 							themselves by providing a valid JWT obtained when called "/authenticate" end-point. The Authorization 
+	 * 							filter does the heavy work when processing the user requests and populates the security context of the
+	 * 							request made with decoded user information included in the JWT provided by the user.
+	 * @return					returns a JSON formatted string containing the list of roles if the requester is an ADMIN or else returns
+	 * 							a JSON formatted string with the status of the operation and a description of the status.
+	 */
 	@GET
 	@Path("/roles")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String readRoles(@Context SecurityContext securityContext)
 	{
-		//Allow only UserType ADMIN
+		// Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
 			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
@@ -91,7 +112,16 @@ public class SecurityResource {
 		return role.readRoles().toString();
 	}
 
-
+	/**
+	 * POST method of the "/roles" end-point takes a list of new role details in the form of a JSON formatted string and allows
+	 * it to be saved if the user who sent the request is authorized to do so. User must be in ADMIN role to perform this task.
+	 * The input JSON formatted string can be of two types depending on the structure and a simple JSON object represents a single role
+	 * while a JSON object can also contain a JSON array named "roles" which may contain multiple roles.
+	 *  
+	 * @param roleJSON			JSON formatted string containing the new role details.
+	 * @param securityContext	contains authenticated user's critical information
+	 * @return					returns a JSON formatted string with status and status message of saving the role.
+	 */
 	@POST
 	@Path("/roles")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -100,7 +130,7 @@ public class SecurityResource {
 	{
 		JsonObject result = null;
 
-		//Allow only UserType ADMIN
+		// Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
 			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
@@ -109,7 +139,7 @@ public class SecurityResource {
 
 			JsonObject roleJSON_parsed = new JsonParser().parse(roleJSON).getAsJsonObject();
 
-			//check if multiple inserts
+			// Check if multiple inserts
 			if(!roleJSON_parsed.has("roles")) {
 				return (role.insertRole(roleJSON_parsed.get("role_id").getAsString(), roleJSON_parsed.get("role_description").getAsString())).toString();
 			} else if (!roleJSON_parsed.get("roles").isJsonArray()) {
@@ -128,6 +158,7 @@ public class SecurityResource {
 				}
 			}
 
+			// Include how many roles have been inserted from the given role id list in the response
 			result = new JsonObject();
 			if(insertCount == elemCount) {
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
@@ -138,11 +169,23 @@ public class SecurityResource {
 			}
 
 		} catch (Exception ex){
-			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex).toString();
 		}
 		return result.toString();
 	}
 
+	/**
+	 * PUT method of "/roles" end-point allows the authorized users to submit a JSON formatted string containing an existing role id
+	 * and new information of fields that needs to be updated in that specific role. User must be an ADMIN in this case and the role id 
+	 * should be an existing id in the roles table of the local database of the user service. The input JSON formatted string can be of 
+	 * two types depending on the structure and a simple JSON object represents a single role while a JSON object can also contain a 
+	 * JSON array named "roles" which may contain multiple roles.
+	 * 
+	 * @param roleJSON			contains the new information of an existing role to be updated in the form of a JSON formatted string
+	 * 							with its role id specified.
+	 * @param securityContext	contains authenticated user's critical information
+	 * @return					returns a JSON formatted string with status and status message of updating the role/roles.
+	 */
 	@PUT
 	@Path("/roles")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -151,7 +194,7 @@ public class SecurityResource {
 	{
 		JsonObject result = null;
 
-		//Allow only UserType ADMIN
+		// Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
 			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
@@ -160,7 +203,7 @@ public class SecurityResource {
 
 			JsonObject roleJSON_parsed = new JsonParser().parse(roleJSON).getAsJsonObject();
 
-			//check if multiple inserts
+			// Check if multiple inserts
 			if(!roleJSON_parsed.has("roles")) {
 				return (role.updateRole(roleJSON_parsed.get("role_id").getAsString(), roleJSON_parsed.get("role_description").getAsString())).toString();
 			} else if (!roleJSON_parsed.get("roles").isJsonArray()) {
@@ -179,6 +222,7 @@ public class SecurityResource {
 				}
 			}
 
+			// Include how many roles have been updated from the given role id list in the response
 			result = new JsonObject();
 			if(updateCount == elemCount) {
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
@@ -189,12 +233,21 @@ public class SecurityResource {
 			}
 
 		} catch (Exception ex){
-			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex).toString();
 		}
 
 		return result.toString();
 	}
 
+	/**
+	 * DELETE method of "/roles" end-point allows deleting a role that already exists in the local database table.The input JSON formatted string can be of 
+	 * two types depending on the structure and a simple JSON object represents a single role while a JSON object can also contain a 
+	 * JSON array named "roles" which may contain multiple roles. roleJSON only contains the role ID/s.
+	 * 
+	 * @param roleJSON			contains the id of an existing role/set of IDs of existing roles in the form of a JSON formatted string.
+	 * @param securityContext	contains authenticated user's critical information.
+	 * @return					returns a JSON formatted string with status and status message of deleting the role/roles.
+	 */
 	@DELETE
 	@Path("/roles")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -203,7 +256,7 @@ public class SecurityResource {
 	{
 		JsonObject result = null;
 
-		//Allow only UserType ADMIN
+		// Allow only UserType ADMIN
 		if(!securityContext.isUserInRole(UserType.ADMIN.toString())) {
 			return new JsonResponseBuilder().getJsonUnauthorizedResponse("You are not Authorized to access this End-point!").toString();
 		}
@@ -212,13 +265,13 @@ public class SecurityResource {
 
 			JsonObject roleJSON_parsed = new JsonParser().parse(roleJSON).getAsJsonObject();
 
-			//check if multiple inserts
+			// Check if multiple inserts
 			if(!roleJSON_parsed.has("roles")) {
 				return (role.deleteRole(roleJSON_parsed.get("role_id").getAsString())).toString();
 			} else if (!roleJSON_parsed.get("roles").isJsonArray()) {
 				return new JsonResponseBuilder().getJsonErrorResponse("Invalid JSON Object.").toString();
 			}
-
+			
 			int deleteCount = 0;
 			int elemCount = roleJSON_parsed.get("roles").getAsJsonArray().size();
 
@@ -231,6 +284,7 @@ public class SecurityResource {
 				}
 			}
 
+			// Include how many roles have been deleted from the given role id list in the response
 			result = new JsonObject();
 			if(deleteCount == elemCount) {
 				result.addProperty("STATUS", DBOpStatus.SUCCESSFUL.toString());
@@ -241,7 +295,7 @@ public class SecurityResource {
 			}
 
 		} catch (Exception ex){
-			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex.getMessage()).toString();
+			return new JsonResponseBuilder().getJsonExceptionResponse("Exception Details: " + ex).toString();
 		}
 
 		return result.toString();

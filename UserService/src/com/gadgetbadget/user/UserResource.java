@@ -56,8 +56,16 @@ public class UserResource {
 
 	private static final String SUPER_ADMIN = "AD21000001";
 
-	// List of Common End-points for All User Types
-	// Users End-points (User Accounts)
+	/**
+	 * GET method of the "/users" resource retrieves a list of currently available users
+	 * from the local database of the user service. It is only allowed to be done for ADMINs.
+	 * 
+	 * @param securityContext	contains authenticated user's critical information
+	 * @param isStats			ADMINs can use this query parameter and set it to true to get a summarized statistics
+	 * 							of each user from other services. if this is either set to false or not set at all, the
+	 * 							regular set of users is returned.
+	 * @return					
+	 */
 	@GET
 	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -2060,4 +2068,3 @@ public class UserResource {
 		}
 	}
 }
-
