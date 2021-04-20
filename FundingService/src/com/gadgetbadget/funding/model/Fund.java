@@ -365,7 +365,7 @@ public class Fund extends DBHandler{
 				JsonObject payload = new JsonObject();
 				payload.addProperty("creditcard_no", creditcard_no);
 
-				JsonObject paymentMethodDetails = new InterServiceCommHandler().userIntercomms("users/funders/" + fund_id + "/payment-methods?retrieve=true", payload);
+				JsonObject paymentMethodDetails = new InterServiceCommHandler().userIntercomms("users/funders/" + funder_id + "/payment-methods?retrieve=true", payload);
 				if(! new ValidationHandler().verifyPaymentMethod(paymentMethodDetails)) {
 					result = new JsonObject();
 					result.addProperty("STATUS", "ERROR");
