@@ -13,14 +13,15 @@ public class ValidationHandler {
 			}
 
 			BigInteger cc_no = new BigInteger(paymentMethodDetails.get("creditcard_no").getAsString());
-			System.out.print("CC:::" + cc_no);
 
 			if (paymentMethodDetails.get("creditcard_type").getAsString().equalsIgnoreCase("Master") || paymentMethodDetails.get("creditcard_type").getAsString().equalsIgnoreCase("Visa")) {
-				if(paymentMethodDetails.get("creditcard_no").getAsString().length() != 13 || (paymentMethodDetails.get("creditcard_no").getAsString().length() != 16)) {
+				int cc_length = paymentMethodDetails.get("creditcard_no").getAsString().length();
+				if(!( cc_length == 13 || (cc_length == 16))) {
 					return false;
 				}
 
-				if(paymentMethodDetails.get("creditcard_security_no").getAsString().length() != 3 || paymentMethodDetails.get("creditcard_security_no").getAsString().length() != 4) {
+				int cc_securitycode_length = paymentMethodDetails.get("creditcard_security_no").getAsString().length();				
+				if( ! (cc_securitycode_length == 3 || cc_securitycode_length == 4)) {
 					return false;
 				}
 				
@@ -38,7 +39,7 @@ public class ValidationHandler {
 			Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
 			
 			if(expTimestamp.before(nowTimestamp)) {
-				
+				return false;
 			}
 			
 			return true;
