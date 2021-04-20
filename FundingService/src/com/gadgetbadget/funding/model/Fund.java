@@ -269,7 +269,7 @@ public class Fund extends DBHandler{
 					return result; 
 				}
 
-				String query = "SELECT ROUND((`funded_amount` * (`service_charge_rate`)/100),2) AS 'fund_profit' FROM `fund` WHERE 1;";
+				String query = "SELECT SUM( ROUND((`funded_amount` * (`service_charge_rate`)/100),2) ) AS 'fund_profit' FROM `fund` WHERE 1;";
 				PreparedStatement preparedStmt = conn.prepareStatement(query);
 				
 				ResultSet rs = preparedStmt.executeQuery();
