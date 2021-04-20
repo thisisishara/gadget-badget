@@ -103,7 +103,7 @@ public class Collaborator extends DBHandler {
 		return result;
 	}
 
-	//Read Collaborator
+	//Read Collaborators
 	public JsonObject readCollaborator(String project_id, String full_name) {
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();
