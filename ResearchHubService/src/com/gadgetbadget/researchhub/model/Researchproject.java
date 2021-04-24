@@ -60,7 +60,7 @@ public class Researchproject extends DBHandler{
 		return result;
 	}
 
-	//Read Research Projects
+	//Read Research Project
 	public JsonObject readProjects(String researcher_id) {
 		JsonObject result = null;
 		JsonArray resultArray = new JsonArray();

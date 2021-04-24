@@ -125,7 +125,7 @@ public class ResearchProjectResource {
 		}
 
 		result = new JsonObject();
-		result.add("products", resultArray);
+		result.add("projects", resultArray);
 
 		if(readCount == elemCount) {
 			result.addProperty("STATUS", "SUCCESSFUL");
